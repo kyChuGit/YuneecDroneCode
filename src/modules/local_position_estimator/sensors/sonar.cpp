@@ -48,9 +48,14 @@ int BlockLocalPositionEstimator::sonarMeasure(Vector<float, n_y_sonar> &y)
 {
 	// measure
 	float d = _sub_sonar->get().current_distance;
-	float eps = 0.01f;
+	float eps = 0.01f; // 1 cm
 	float min_dist = _sub_sonar->get().min_distance + eps;
 	float max_dist = _sub_sonar->get().max_distance - eps;
+
+	// prevent driver from setting min dist below eps
+	if (min_dist < eps) {
+		min_dist = eps;
+	}
 
 	// check for bad data
 	if (d > max_dist || d < min_dist) {
@@ -127,14 +132,7 @@ void BlockLocalPositionEstimator::sonarCorrect()
 		Matrix<float, n_x, n_y_sonar> K =
 			_P * C.transpose() * S_I;
 		Vector<float, n_x> dx = K * r;
-
-		if (!_canEstimateXY) {
-			dx(X_x) = 0;
-			dx(X_y) = 0;
-			dx(X_vx) = 0;
-			dx(X_vy) = 0;
-		}
-
+		correctionLogic(dx);
 		_x += dx;
 		_P -= K * C * _P;
 	}
