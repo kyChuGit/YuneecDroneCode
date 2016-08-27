@@ -161,10 +161,10 @@ commander start
 load_mon start
 
 # Start MAVLink on the gimbal port
-#mavlink start -r 1200 -d /dev/ttyS1
+mavlink start -r 100000 -m onboard -b 921600 -d /dev/ttyS1
 
 # Start MAVLink on USB, developers can use the MAVLink shell
-mavlink start -r 60000 -d /dev/ttyACM0 -m config
+mavlink start -r 800000 -d /dev/ttyACM0 -m config
 
 #
 # Logging
@@ -178,7 +178,6 @@ mavlink start -r 60000 -d /dev/ttyACM0 -m config
 #
 if [ $VEHICLE_TYPE == fw ]
 then
-	echo "INFO  [init] Fixedwing"
 
 	if [ $MIXER == none ]
 	then
@@ -206,7 +205,6 @@ fi
 #
 if [ $VEHICLE_TYPE == mc ]
 then
-	echo "INFO  [init] Multicopter"
 
 	if [ $MIXER == none ]
 	then
@@ -260,68 +258,6 @@ then
 
 	# Start standard multicopter apps
 	sh /etc/init.d/rc.mc_apps
-fi
-
-#
-# VTOL setup
-#
-if [ $VEHICLE_TYPE == vtol ]
-then
-	echo "INFO  [init] VTOL"
-
-	if [ $MIXER == none ]
-	then
-		echo "WARN  [init] VTOL mixer undefined"
-	fi
-
-	if [ $MAV_TYPE == none ]
-	then
-		# Use mixer to detect vehicle type
-		if [ $MIXER == caipirinha_vtol ]
-		then
-			set MAV_TYPE 19
-		fi
-		if [ $MIXER == firefly6 ]
-		then
-			set MAV_TYPE 21
-		fi
-		if [ $MIXER == quad_x_pusher_vtol ]
-		then
-			set MAV_TYPE 22
-		fi
-	fi
-
-	# Still no MAV_TYPE found
-	if [ $MAV_TYPE == none ]
-	then
-		echo "WARN  [init] Unknown MAV_TYPE"
-		param set MAV_TYPE 19
-	else
-		param set MAV_TYPE $MAV_TYPE
-	fi
-
-	# Load mixer and configure outputs
-	sh /etc/init.d/rc.interface
-
-	# Start standard vtol apps
-	sh /etc/init.d/rc.vtol_apps
-fi
-
-#
-# Rover setup
-#
-if [ $VEHICLE_TYPE == rover ]
-then
-	# 10 is MAV_TYPE_GROUND_ROVER
-	set MAV_TYPE 10
-
-	# Load mixer and configure outputs
-	sh /etc/init.d/rc.interface
-
-	# Start standard rover apps
-	sh /etc/init.d/rc.axialracing_ax10_apps
-
-	param set MAV_TYPE 10
 fi
 
 unset MIXER
