@@ -33,6 +33,7 @@
 px4_add_module(
 	MODULE drivers__tap_esc
 	MAIN tap_esc
+	STACK_MAIN 1400
 	COMPILE_FLAGS
 	SRCS
 		tap_esc.cpp
