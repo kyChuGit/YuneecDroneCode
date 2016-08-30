@@ -1687,8 +1687,11 @@ MPU6000::stop()
 
 	} else {
 #ifdef USE_I2C
+		int call_prev = _call_interval;
 		_call_interval = 0;
 		work_cancel(HPWORK, &_work);
+		usleep(10000);
+		_call_interval = call_prev;
 #endif
 	}
 
