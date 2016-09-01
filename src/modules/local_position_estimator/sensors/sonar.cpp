@@ -34,10 +34,10 @@ void BlockLocalPositionEstimator::sonarInit()
 			_sonarStats.reset();
 
 		} else {
-			mavlink_and_console_log_info(&mavlink_log_pub, "[lpe] sonar init "
-						     "mean %d cm std %d cm",
-						     int(100 * _sonarStats.getMean()(0)),
-						     int(100 * _sonarStats.getStdDev()(0)));
+			PX4_INFO("[lpe] sonar init "
+				 "mean %d cm std %d cm",
+				 int(100 * _sonarStats.getMean()(0)),
+				 int(100 * _sonarStats.getStdDev()(0)));
 			_sonarInitialized = true;
 			_sonarFault = FAULT_NONE;
 		}
@@ -99,12 +99,14 @@ void BlockLocalPositionEstimator::sonarCorrect()
 	C(Y_sonar_z, X_tz) = 1; // measured altitude, negative down dir.
 
 	// covariance matrix
-	Matrix<float, n_y_sonar, n_y_sonar> R;
+	SquareMatrix<float, n_y_sonar> R;
 	R.setZero();
 	R(0, 0) = cov;
 
 	// residual
 	Vector<float, n_y_sonar> r = y - C * _x;
+	_pub_innov.get().hagl_innov = r(0);
+	_pub_innov.get().hagl_innov_var = R(0, 0);
 
 	// residual covariance, (inverse)
 	Matrix<float, n_y_sonar, n_y_sonar> S_I =

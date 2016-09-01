@@ -7,12 +7,14 @@
 
 // PWM levels of the interface to seagull MAP converter to
 // Multiport (http://www.seagulluav.com/manuals/Seagull_MAP2-Manual.pdf)
-#define PWM_CAMERA_DISARMED			90 // TODO(birchera): check here value
+#define PWM_CAMERA_DISARMED			900
 #define PWM_CAMERA_ON				1100
 #define PWM_CAMERA_AUTOFOCUS_SHOOT	1300
 #define PWM_CAMERA_NEUTRAL			1500
 #define PWM_CAMERA_INSTANT_SHOOT	1700
 #define PWM_CAMERA_OFF				1900
+#define PWM_2_CAMERA_KEEP_ALIVE		1700
+#define PWM_2_CAMERA_ON_OFF			1900
 
 CameraInterfacePWM::CameraInterfacePWM():
 	CameraInterface(),
@@ -48,13 +50,18 @@ CameraInterfacePWM::CameraInterfacePWM():
 
 CameraInterfacePWM::~CameraInterfacePWM()
 {
+	// Deinitialise pwm channels
+	// Can currently not be used, because up_pwm_servo_deinit() will deinitialise all pwm channels
+	// up_pwm_servo_deinit();
 }
 
 void CameraInterfacePWM::setup()
 {
-	for (unsigned i = 0; i < sizeof(_pins) / sizeof(_pins[0]); i++) {
-		if (_pins[i] >= 0) {
-			// TODO(birchera): use return value to make sure everything is fine
+	for (unsigned i = 0; i < sizeof(_pins) / sizeof(_pins[0]); i = i + 2) {
+		if (_pins[i] >= 0 && _pins[i + 1] >= 0) {
+			uint8_t pin_bitmask = (1 << _pins[i + 1]) | (1 << _pins[i]);
+			up_pwm_servo_init(pin_bitmask);
+			up_pwm_servo_set(_pins[i + 1], math::constrain(PWM_CAMERA_DISARMED, PWM_CAMERA_DISARMED, 2000));
 			up_pwm_servo_set(_pins[i], math::constrain(PWM_CAMERA_DISARMED, PWM_CAMERA_DISARMED, 2000));
 		}
 	}
@@ -65,62 +72,78 @@ void CameraInterfacePWM::trigger(bool enable)
 	// This only starts working upon prearming
 
 	if (!_camera_is_on) {
-		// Turn camera on and give time to start up
-		powerOn();
 		return;
 	}
 
 	if (enable) {
 		// Set all valid pins to shoot level
-		for (unsigned i = 0; i < sizeof(_pins) / sizeof(_pins[0]); i++) {
-			if (_pins[i] >= 0) {
-				up_pwm_servo_set(_pins[i], math::constrain(PWM_CAMERA_INSTANT_SHOOT, 1000, 2000));
+		for (unsigned i = 0; i < sizeof(_pins) / sizeof(_pins[0]); i = i + 2) {
+			if (_pins[i] >= 0 && _pins[i + 1] >= 0) {
+				up_pwm_servo_set(_pins[i + 1], math::constrain(PWM_CAMERA_INSTANT_SHOOT, 1000, 2000));
 			}
 		}
 
 	} else {
 		// Set all valid pins back to neutral level
-		for (unsigned i = 0; i < sizeof(_pins) / sizeof(_pins[0]); i++) {
-			if (_pins[i] >= 0) {
+		for (unsigned i = 0; i < sizeof(_pins) / sizeof(_pins[0]); i = i + 2) {
+			if (_pins[i] >= 0 && _pins[i + 1] >= 0) {
+				up_pwm_servo_set(_pins[i + 1], math::constrain(PWM_CAMERA_NEUTRAL, 1000, 2000));
+			}
+		}
+	}
+}
+
+void CameraInterfacePWM::keep_alive(bool signal_on)
+{
+	// This should alternate between signal_on and !signal_on to keep the camera alive
+
+	if (!_camera_is_on) {
+		return;
+	}
+
+	if (signal_on) {
+		// Set channel 2 pin to keep_alive signal
+		for (unsigned i = 0; i < sizeof(_pins) / sizeof(_pins[0]); i = i + 2) {
+			if (_pins[i] >= 0 && _pins[i + 1] >= 0) {
+				up_pwm_servo_set(_pins[i], math::constrain(PWM_2_CAMERA_KEEP_ALIVE, 1000, 2000));
+			}
+		}
+
+	} else {
+		// Set channel 2 pin to neutral signal
+		for (unsigned i = 0; i < sizeof(_pins) / sizeof(_pins[0]); i = i + 2) {
+			if (_pins[i] >= 0 && _pins[i + 1] >= 0) {
 				up_pwm_servo_set(_pins[i], math::constrain(PWM_CAMERA_NEUTRAL, 1000, 2000));
 			}
 		}
 	}
 }
 
-int CameraInterfacePWM::powerOn()
+void CameraInterfacePWM::turn_on_off(bool enable)
 {
-	// This only starts working upon prearming
-
-	// Set all valid pins to turn on level
-	for (unsigned i = 0; i < sizeof(_pins) / sizeof(_pins[0]); i++) {
-		if (_pins[i] >= 0) {
-			up_pwm_servo_set(_pins[i], math::constrain(PWM_CAMERA_ON, 1000, 2000));
+	if (enable) {
+		// For now, set channel one on neutral upon startup.
+		for (unsigned i = 0; i < sizeof(_pins) / sizeof(_pins[0]); i = i + 2) {
+			if (_pins[i] >= 0 && _pins[i + 1] >= 0) {
+				up_pwm_servo_set(_pins[i + 1], math::constrain(PWM_CAMERA_NEUTRAL, 1000, 2000));
+				up_pwm_servo_set(_pins[i], math::constrain(PWM_2_CAMERA_ON_OFF, 1000, 2000));
+			}
 		}
-	}
 
-	_camera_is_on = true;
-
-	return 0;
-}
-
-int CameraInterfacePWM::powerOff()
-{
-	// This only starts working upon prearming
-
-	// Set all valid pins to turn off level
-	for (unsigned i = 0; i < sizeof(_pins) / sizeof(_pins[0]); i++) {
-		if (_pins[i] >= 0) {
-			up_pwm_servo_set(_pins[i], math::constrain(PWM_CAMERA_OFF, 1000, 2000));
+	} else {
+		// For now, set channel one on neutral upon startup.
+		for (unsigned i = 0; i < sizeof(_pins) / sizeof(_pins[0]); i = i + 2) {
+			if (_pins[i] >= 0 && _pins[i + 1] >= 0) {
+				up_pwm_servo_set(_pins[i + 1], math::constrain(PWM_CAMERA_NEUTRAL, 1000, 2000));
+				up_pwm_servo_set(_pins[i], math::constrain(PWM_CAMERA_NEUTRAL, 1000, 2000));
+			}
 		}
+
+		_camera_is_on = !_camera_is_on;
 	}
-
-	_camera_is_on = false;
-
-	return 0;
 }
 
 void CameraInterfacePWM::info()
 {
-	warnx("PWM - camera triggering, pins 1-3 : %d,%d,%d", _pins[0], _pins[1], _pins[2]);
+	warnx("PWM - interface, pin config: %d,%d,%d", _pins[0] + 1, _pins[1] + 1, _pins[2] + 1);
 }

@@ -49,7 +49,6 @@ set(msg_file_names
 	distance_sensor.msg
 	ekf2_innovations.msg
 	ekf2_replay.msg
-	encoders.msg
 	esc_report.msg
 	esc_status.msg
 	estimator_status.msg
@@ -66,6 +65,7 @@ set(msg_file_names
 	hil_sensor.msg
 	home_position.msg
 	input_rc.msg
+	log_message.msg
 	manual_control_setpoint.msg
 	mavlink_log.msg
 	mc_att_ctrl_status.msg

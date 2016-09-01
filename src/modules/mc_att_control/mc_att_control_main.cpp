@@ -102,6 +102,11 @@ extern "C" __EXPORT int mc_att_control_main(int argc, char *argv[]);
 #define MANUAL_THROTTLE_MAX_MULTICOPTER	0.9f
 #define ATTITUDE_TC_DEFAULT 0.2f
 
+#define AXIS_INDEX_ROLL 0
+#define AXIS_INDEX_PITCH 1
+#define AXIS_INDEX_YAW 2
+#define AXIS_COUNT 3
+
 class MulticopterAttitudeControl
 {
 public:
@@ -180,6 +185,8 @@ private:
 		param_t pitch_rate_i;
 		param_t pitch_rate_d;
 		param_t pitch_rate_ff;
+		param_t tpa_breakpoint;
+		param_t tpa_slope;
 		param_t yaw_p;
 		param_t yaw_rate_p;
 		param_t yaw_rate_i;
@@ -211,6 +218,9 @@ private:
 		math::Vector<3> rate_d;				/**< D gain for angular rate error */
 		math::Vector<3>	rate_ff;			/**< Feedforward gain for desired rates */
 		float yaw_ff;						/**< yaw control feed-forward */
+
+		float tpa_breakpoint;				/**< Throttle PID Attenuation breakpoint */
+		float tpa_slope;					/**< Throttle PID Attenuation slope */
 
 		float roll_rate_max;
 		float pitch_rate_max;
@@ -376,6 +386,8 @@ MulticopterAttitudeControl::MulticopterAttitudeControl() :
 	_params_handles.pitch_rate_i	= 	param_find("MC_PITCHRATE_I");
 	_params_handles.pitch_rate_d	= 	param_find("MC_PITCHRATE_D");
 	_params_handles.pitch_rate_ff 	= 	param_find("MC_PITCHRATE_FF");
+	_params_handles.tpa_breakpoint 	= 	param_find("MC_TPA_BREAK");
+	_params_handles.tpa_slope	 	= 	param_find("MC_TPA_SLOPE");
 	_params_handles.yaw_p			=	param_find("MC_YAW_P");
 	_params_handles.yaw_rate_p		= 	param_find("MC_YAWRATE_P");
 	_params_handles.yaw_rate_i		= 	param_find("MC_YAWRATE_I");
@@ -430,6 +442,7 @@ MulticopterAttitudeControl::~MulticopterAttitudeControl()
 			}
 		} while (_control_task != -1);
 	}
+
 	if (_ts_opt_recovery != nullptr) {
 		delete _ts_opt_recovery;
 	}
@@ -470,6 +483,11 @@ MulticopterAttitudeControl::parameters_update()
 	_params.rate_d(1) = v * (ATTITUDE_TC_DEFAULT / pitch_tc);
 	param_get(_params_handles.pitch_rate_ff, &v);
 	_params.rate_ff(1) = v;
+
+	param_get(_params_handles.tpa_breakpoint, &v);
+	_params.tpa_breakpoint = v;
+	param_get(_params_handles.tpa_slope, &v);
+	_params.tpa_slope = v;
 
 	/* yaw gains */
 	param_get(_params_handles.yaw_p, &v);
@@ -712,7 +730,7 @@ MulticopterAttitudeControl::control_attitude(float dt)
 		 * calculate angle and axis for R -> R_sp rotation directly */
 		math::Quaternion q_error;
 		q_error.from_dcm(R.transposed() * R_sp);
-		math::Vector<3> e_R_d = q_error(0) >= 0.0f ? q_error.imag()  * 2.0f: -q_error.imag() * 2.0f;
+		math::Vector<3> e_R_d = q_error(0) >= 0.0f ? q_error.imag()  * 2.0f : -q_error.imag() * 2.0f;
 
 		/* use fusion of Z axis based rotation and direct rotation */
 		float direct_w = e_R_z_cos * e_R_z_cos * yaw_w;
@@ -765,21 +783,28 @@ MulticopterAttitudeControl::control_attitude_rates(float dt)
 	rates(1) = _ctrl_state.pitch_rate;
 	rates(2) = _ctrl_state.yaw_rate;
 
+	/* throttle pid attenuation factor */
+	float tpa =  fmaxf(0.0f, fminf(1.0f, 1.0f - _params.tpa_slope * (fabsf(_v_rates_sp.thrust) - _params.tpa_breakpoint)));
+
 	/* angular rates error */
 	math::Vector<3> rates_err = _rates_sp - rates;
-	_att_control = _params.rate_p.emult(rates_err) + _params.rate_d.emult(_rates_prev - rates) / dt + _rates_int +
-		       _params.rate_ff.emult(_rates_sp - _rates_sp_prev) / dt;
+
+	_att_control = _params.rate_p.emult(rates_err * tpa) + _params.rate_d.emult(_rates_prev - rates) / dt + _rates_int +
+		       _params.rate_ff.emult(_rates_sp);
+
 	_rates_sp_prev = _rates_sp;
 	_rates_prev = rates;
 
 	/* update integral only if not saturated on low limit and if motor commands are not saturated */
 	if (_thrust_sp > MIN_TAKEOFF_THRUST && !_motor_limits.lower_limit && !_motor_limits.upper_limit) {
-		for (int i = 0; i < 3; i++) {
+		for (int i = AXIS_INDEX_ROLL; i < AXIS_COUNT; i++) {
 			if (fabsf(_att_control(i)) < _thrust_sp) {
 				float rate_i = _rates_int(i) + _params.rate_i(i) * rates_err(i) * dt;
 
 				if (PX4_ISFINITE(rate_i) && rate_i > -RATES_I_LIMIT && rate_i < RATES_I_LIMIT &&
-				    _att_control(i) > -RATES_I_LIMIT && _att_control(i) < RATES_I_LIMIT) {
+				    _att_control(i) > -RATES_I_LIMIT && _att_control(i) < RATES_I_LIMIT &&
+				    /* if the axis is the yaw axis, do not update the integral if the limit is hit */
+				    !((i == AXIS_INDEX_YAW) && _motor_limits.yaw)) {
 					_rates_int(i) = rate_i;
 				}
 			}

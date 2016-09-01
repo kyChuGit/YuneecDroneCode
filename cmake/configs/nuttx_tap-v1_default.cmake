@@ -2,7 +2,7 @@ include(nuttx/px4_impl_nuttx)
 
 px4_nuttx_configure(HWCLASS m4 CONFIG nsh ROMFS y ROMFSROOT tap_common)
 
-set(CMAKE_TOOLCHAIN_FILE ${CMAKE_SOURCE_DIR}/cmake/toolchains/Toolchain-arm-none-eabi.cmake)
+set(CMAKE_TOOLCHAIN_FILE ${PX4_SOURCE_DIR}/cmake/toolchains/Toolchain-arm-none-eabi.cmake)
 
 set(config_module_list
 	#
@@ -16,8 +16,10 @@ set(config_module_list
 	drivers/px4fmu
 	drivers/boards/tap-v1
 	drivers/rgbled_pwm
-	#drivers/mpu6500
+	drivers/tap_esc
+	drivers/mpu6000
 	drivers/ms5611
+	drivers/hmc5883
 	drivers/gps
 	drivers/airspeed
 	drivers/meas_airspeed
@@ -33,6 +35,7 @@ set(config_module_list
 	systemcmds/perf
 	systemcmds/pwm
 	systemcmds/hardfault_log
+	systemcmds/motor_test
 	systemcmds/reboot
 	systemcmds/top
 	systemcmds/config
@@ -40,6 +43,7 @@ set(config_module_list
 	systemcmds/mtd
 	systemcmds/dumpfile
 	systemcmds/ver
+	systemcmds/topic_listener
 
 	#
 	# General system control
@@ -94,6 +98,7 @@ set(config_module_list
 	lib/runway_takeoff
 	lib/tailsitter_recovery
 	lib/DriverFramework/framework
+	lib/rc
 	platforms/nuttx
 
 	# had to add for cmake, not sure why wasn't in original config
