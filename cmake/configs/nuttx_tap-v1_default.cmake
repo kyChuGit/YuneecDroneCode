@@ -20,6 +20,7 @@ set(config_module_list
 	drivers/mpu6000
 	drivers/ms5611
 	drivers/hmc5883
+	drivers/ist8310
 	drivers/gps
 	drivers/airspeed
 	drivers/meas_airspeed

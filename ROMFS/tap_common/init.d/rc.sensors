@@ -16,6 +16,11 @@ if hmc5883 -C -T -X start
 then
 fi
 
+# External I2C bus
+if ist8310 -C start
+then
+fi
+
 # Internal I2C bus
 if mpu6000 -I -T 6000 start
 then
