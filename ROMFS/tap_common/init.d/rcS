@@ -54,13 +54,6 @@ uorb start
 #
 # Load parameters
 #
-set PARAM_FILE /fs/microsd/params
-if mtd start
-then
-	set PARAM_FILE /fs/mtd_params
-fi
-
-param select $PARAM_FILE
 if param load
 then
 else
