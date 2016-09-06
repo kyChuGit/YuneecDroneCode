@@ -42,6 +42,7 @@
 #include "output.h"
 
 #include <uORB/uORB.h>
+#include <uORB/topics/control_state.h>
 
 
 namespace vmount
@@ -73,6 +74,9 @@ private:
 
 	int _serial_fd = -1;
 	uint8_t _seq = 0;
+
+	control_state_s _control_state;
+	int _control_state_sub = -1;
 };
 
 

@@ -173,6 +173,8 @@ int OutputSerial::initialize()
 		return -1;
 	}
 
+	_control_state_sub = orb_subscribe(ORB_ID(control_state));
+
 	return ret;
 }
 
@@ -180,6 +182,10 @@ OutputSerial::~OutputSerial()
 {
 	if (_serial_fd >= 0) {
 		close(_serial_fd);
+	}
+
+	if (_control_state_sub >= 0) {
+		orb_unsubscribe(_control_state_sub);
 	}
 }
 
@@ -257,6 +263,7 @@ int OutputSerial::update(const ControlData *control_data)
 			}
 		}
 	}
+
 	if (_cur_control_data->type == ControlData::Type::Neutral) { //no input yet... just return
 		return 0;
 	}
@@ -279,8 +286,11 @@ int OutputSerial::update(const ControlData *control_data)
 	gimbal_control.quaternion[3] = 10000.f * q.data[3]; //z
 	gimbal_control.yaw_deg_desire = vehicle_attitude.yawspeed * M_RAD_TO_DEG_F * 10.f;
 
-	gimbal_control.hvel = 0; //TODO: vehicle local position? -> class members
-	gimbal_control.hacc = 0;
+	orb_copy(ORB_ID(control_state), _control_state_sub, &_control_state);
+	gimbal_control.hvel = 100.f * sqrtf(_control_state.x_vel * _control_state.x_vel +
+					    _control_state.y_vel * _control_state.y_vel);
+	gimbal_control.hacc = 100.f * sqrtf(_control_state.x_acc * _control_state.x_acc +
+					    _control_state.y_acc * _control_state.y_acc);
 
 	// roll
 	float roll_angle = _angle_setpoints[0] * M_RAD_TO_DEG_F;
