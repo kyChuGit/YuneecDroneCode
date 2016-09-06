@@ -55,6 +55,10 @@ struct OutputConfig {
 
 	uint32_t mavlink_sys_id; /**< mavlink target system id for mavlink output */
 	uint32_t mavlink_comp_id;
+
+	/* serial output */
+	const char *device;
+	int baudrate;
 };
 
 

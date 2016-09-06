@@ -116,6 +116,24 @@ sh /etc/init.d/rc.autostart
 if [ $AUTOCNF == yes ]
 then
 	param set SYS_AUTOCONFIG 0
+
+	# pan control
+	param set RC_MAP_AUX1 8
+	# tilt control
+	param set RC_MAP_AUX2 7
+	# tilt mode
+	param set RC_MAP_AUX3 9
+	# pan mode
+	param set RC_MAP_AUX4 10
+
+	# gimbal driver configuration
+	param set MNT_MODE_IN 4
+	param set MNT_MODE_OUT 2
+	param set MNT_MAN_CONTROL 1
+	param set MNT_MAN_ROLL 0
+	param set MNT_MAN_PITCH 2
+	param set MNT_MAN_YAW 1
+
 	param save
 fi
 unset AUTOCNF
@@ -152,9 +170,6 @@ commander start
 # Start CPU load monitor
 #
 load_mon start
-
-# Start MAVLink on the gimbal port
-mavlink start -r 100000 -m onboard -b 921600 -d /dev/ttyS1
 
 # Start MAVLink on USB, developers can use the MAVLink shell
 mavlink start -r 800000 -d /dev/ttyACM0 -m config
@@ -287,6 +302,8 @@ mixer load /dev/px4fmu /etc/mixers/gear.mix
 # There is no further script processing, so we can free some RAM
 # XXX potentially unset all script variables.
 #unset TUNE_ERR
+
+vmount start -d /dev/ttyS1 -b 115200
 
 # Boot is complete, inform MAVLink app(s) that the system is now fully up and running
 mavlink boot_complete

@@ -50,12 +50,15 @@
 #include <systemlib/err.h>
 #include <systemlib/systemlib.h>
 #include <px4_defines.h>
+#include <px4_getopt.h>
 
 #include "input_mavlink.h"
 #include "input_rc.h"
 #include "input_test.h"
+#include "input_rc_st16.h"
 #include "output_rc.h"
 #include "output_mavlink.h"
+#include "output_serial.h"
 
 #include <uORB/uORB.h>
 #include <uORB/topics/parameter_update.h>
@@ -136,6 +139,9 @@ static int vmount_thread_main(int argc, char *argv[])
 	ThreadData thread_data;
 	memset(&params, 0, sizeof(params));
 
+	//set defaults
+	output_config.device = "/dev/ttyS1";
+	output_config.baudrate = 57600;
 
 	InputTest *test_input = nullptr;
 
@@ -184,6 +190,29 @@ static int vmount_thread_main(int argc, char *argv[])
 			return -1;
 		}
 	}
+
+	/* parse parameters */
+	int myoptind = 1;
+	int ch;
+	const char *myoptarg = nullptr;
+
+	while ((ch = px4_getopt(argc, argv, "d:b:", &myoptind, &myoptarg)) != EOF) {
+		switch (ch) {
+
+		case 'b':
+			output_config.baudrate = strtoul(myoptarg, nullptr, 10);
+			break;
+
+		case 'd':
+			output_config.device = myoptarg;
+			break;
+
+		default:
+			//ignore this, since it could be a negative test angle input
+			break;
+		}
+	}
+
 
 	if (!get_params(param_handles, params)) {
 		PX4_ERR("could not get mount parameters!");
@@ -238,6 +267,10 @@ static int vmount_thread_main(int argc, char *argv[])
 					thread_data.input_obj = new InputMavlinkCmdMount(manual_input);
 					break;
 
+				case 4: //RC ST16
+					thread_data.input_obj = new InputRCSt16();
+					break;
+
 				default:
 					PX4_ERR("invalid input mode %i", params.mnt_mode_in);
 					break;
@@ -251,6 +284,10 @@ static int vmount_thread_main(int argc, char *argv[])
 
 			case 1: //MAVLINK
 				thread_data.output_obj = new OutputMavlink(output_config);
+				break;
+
+			case 2: //SERIAL
+				thread_data.output_obj = new OutputSerial(output_config);
 				break;
 
 			default:
