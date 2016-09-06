@@ -3105,7 +3105,7 @@ check_valid(hrt_abstime timestamp, hrt_abstime timeout, bool valid_in, bool *val
 void
 control_status_leds(vehicle_status_s *status_local, const actuator_armed_s *actuator_armed, bool changed, battery_status_s *battery_local, const cpuload_s *cpuload_local)
 {
-	bool overload = (cpuload_local->load > 0.75f) || (cpuload_local->ram_usage > 0.98f);
+	bool overload = (cpuload_local->load > 0.75f) || (cpuload_local->ram_usage > 0.99f);
 
 	/* driving rgbled */
 	if (changed) {
