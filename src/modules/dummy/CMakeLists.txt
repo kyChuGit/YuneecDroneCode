@@ -31,14 +31,12 @@
 #
 ############################################################################
 px4_add_module(
-	MODULE drivers__gimbal
-	MAIN gimbal
-	STACK_MAIN 1024
+	MODULE modules__dummy
+	MAIN tone_alarm
 	COMPILE_FLAGS
 		-Os
 	SRCS
-		gimbal.cpp
-		gimbal_params.c
+		tone_alarm.c
 	DEPENDS
 		platforms__common
 	)
