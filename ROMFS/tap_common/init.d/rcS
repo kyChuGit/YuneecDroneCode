@@ -62,7 +62,7 @@ else
 	fi
 fi
 
-#tone_alarm start
+tone_alarm start
 
 #
 # Start system state indicator
@@ -280,9 +280,9 @@ mixer load /dev/px4fmu /etc/mixers/gear.mix
 #
 # Start the navigator
 #
-if navigator start
-then
-fi
+#if navigator start
+#then
+#fi
 
 # There is no further script processing, so we can free some RAM
 # XXX potentially unset all script variables.

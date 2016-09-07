@@ -979,6 +979,20 @@ PX4FMU::cycle()
 		_vehicle_cmd_sub = orb_subscribe(ORB_ID(vehicle_command));
 		// dsm_init sets some file static variables and returns a file descriptor
 		_rcs_fd = dsm_init(RC_SERIAL_PORT);
+
+		// // XXX unbind sequence
+		// dsm_config(_rcs_fd);
+		// RF_RADIO_POWER_CONTROL(false);
+		// usleep(200000);
+		// RF_RADIO_POWER_CONTROL(true);
+		// usleep(900000);
+
+		// char unbindcmd[] = {0x55, 0x55, 0x08, 0x04, 0x00, 0x00, 0x42, 0x49, 0x4E, 0x44, 0xB0};
+		// int res = ::write(_rcs_fd, &unbindcmd[0], sizeof(unbindcmd));
+		// PX4_INFO("WROTE UNBIND COMMAND: %d (fd: %d)", res, _rcs_fd);
+
+		// sleep(10000);
+
 		// assume SBUS input
 		sbus_config(_rcs_fd, false);
 #ifdef GPIO_PPM_IN
