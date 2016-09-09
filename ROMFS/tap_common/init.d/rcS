@@ -165,7 +165,7 @@ mavlink start -r 800000 -d /dev/ttyACM0 -m config
 #if logger start -b 2 -t
 #then
 #fi
-if sdlog2 start -r 100 -a -b 4 -t
+if sdlog2 start -r 50 -a -b 4 -t
 then
 fi
 
