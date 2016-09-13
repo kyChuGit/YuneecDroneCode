@@ -123,7 +123,7 @@ int MavlinkShell::start()
 		_task = px4_task_spawn_cmd("mavlink_shell",
 					   SCHED_DEFAULT,
 					   SCHED_PRIORITY_DEFAULT,
-					   2048,
+					   1200,
 					   &MavlinkShell::shell_start_thread,
 					   nullptr);
 
