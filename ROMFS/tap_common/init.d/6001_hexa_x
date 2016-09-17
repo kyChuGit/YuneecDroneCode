@@ -16,10 +16,47 @@ sh /etc/init.d/rc.mc_defaults
 if [ $AUTOCNF == yes ]
 then
 	param set MAV_TYPE 13
+	
+	#
+	# Attitude parameters setting for TAP
+	#
+	
+	# pitch angle & rate setting
+	param set MC_PITCHRATE_P 0.06
+	param set MC_PITCHRATE_I 0.004
+	param set MC_PITCHRATE_D 0.0012
+	param set MC_PITCHRATE_MAX 300.0
+	param set MC_PITCH_P 4.5
+	
+	# roll angle & rate setting
+	param set MC_ROLLRATE_P 0.08
+	param set MC_ROLLRATE_I 0.006
+	param set MC_ROLLRATE_D 0.0015
+	param set MC_ROLLRATE_MAX 300.0
+	param set MC_ROLL_P 4.5
+	
+	# yaw angle & rate setting
 	param set MC_YAWRATE_P 0.12
+	param set MC_YAWRATE_I 0.05
+	param set MC_YAWRATE_MAX 120.0
 	param set MC_YAW_P 3.0
+	
+	#
+	# Throttle max/min setting
+	#
+	param set MPC_THR_MAX 0.94
+	param set MPC_THR_MIN 0.1
+	
+	#
+	# Maximum tilt angle
+	#
+	param set MPC_TILTMAX_AIR 35.0
+	
+	#
+	# Battery setting
+	#
 	param set BAT_N_CELLS 4
-	param set CAL_MAG0_ROT 6
+	param set BAT_V_CHARGED 4.2
 fi
 
 if tap_esc start -d /dev/ttyS4 -n 6

@@ -502,6 +502,8 @@ function(px4_add_upload)
 			/dev/serial/by-id/usb-Bitcraze*
 			/dev/serial/by-id/pci-3D_Robotics*
 			/dev/serial/by-id/pci-Bitcraze*
+			/dev/serial/by-id/usb-*ation*
+			/dev/serial/by-id/usb-STMicroelectronics*
 			)
 	elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
 		list(APPEND serial_ports
