@@ -48,6 +48,14 @@
 #include <errno.h>
 #include <termios.h>
 
+#ifndef B460800
+#define B460800 460800
+#endif
+
+#ifndef B921600
+#define B921600 921600
+#endif
+
 namespace vmount
 {
 
