@@ -308,4 +308,24 @@ then
 fi
 
 # Boot is complete, inform MAVLink app(s) that the system is now fully up and running
-mavlink boot_complete
+
+
+if param compare SYS_COMPANION 1921600
+then
+	mavlink start -r 200000 -m onboard -b 921600 -d /dev/ttyS1
+	mavlink boot_complete
+else
+	if param compare SYS_COMPANION 2921600
+	then
+		mavlink start -r 200000 -b 921600 -d /dev/ttyS2
+		mavlink boot_complete
+		exit
+	else
+		#
+		# Start the navigator
+		#
+		if navigator start
+		then
+		fi
+	fi
+fi
