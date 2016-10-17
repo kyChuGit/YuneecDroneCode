@@ -171,8 +171,13 @@ commander start
 #
 load_mon start
 
+# FIXME: for now we just want to make sure mavlink always runs with version 2,
+# later move this to a proper place
+param set MAV_PROTO_VER 2
 # Start MAVLink on USB, developers can use the MAVLink shell
 mavlink start -r 800000 -d /dev/ttyACM0 -m config
+# run mavlink on the Gimbal port
+mavlink start -r 2000 -d /dev/ttyS1 -m config -b 115200
 
 #
 # Logging
@@ -308,9 +313,9 @@ then
 	mavlink start -r 200000 -b 921600 -d /dev/ttyS1
 else
 
-	if vmount start -d /dev/ttyS1 -b 115200
-	then
-	fi
+#	if vmount start -d /dev/ttyS1 -b 115200
+#	then
+#	fi
 
 	if param compare SYS_COMPANION 2921600
 	then
