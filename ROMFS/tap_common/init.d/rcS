@@ -297,13 +297,6 @@ pwm rate -c 1 -r 400
 #
 mixer load /dev/px4fmu /etc/mixers/gear.mix
 
-#
-# Start the navigator
-#
-if navigator start
-then
-fi
-
 # There is no further script processing, so we can free some RAM
 # XXX potentially unset all script variables.
 #unset TUNE_ERR
