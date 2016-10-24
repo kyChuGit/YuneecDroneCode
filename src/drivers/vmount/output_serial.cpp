@@ -283,15 +283,13 @@ int OutputSerial::update(const ControlData *control_data)
 
 	vehicle_attitude_s vehicle_attitude;
 	orb_copy(ORB_ID(vehicle_attitude), _get_vehicle_attitude_sub(), &vehicle_attitude);
-	math::Quaternion q;
-	q.from_euler(vehicle_attitude.roll, vehicle_attitude.pitch, vehicle_attitude.yaw);
 
 	gimbal_control_t gimbal_control;
 	memset(&gimbal_control, 0, sizeof(gimbal_control));
-	gimbal_control.quaternion[0] = 10000.f * q.data[0]; //w
-	gimbal_control.quaternion[1] = 10000.f * q.data[1]; //x
-	gimbal_control.quaternion[2] = 10000.f * q.data[2]; //y
-	gimbal_control.quaternion[3] = 10000.f * q.data[3]; //z
+	gimbal_control.quaternion[0] = 10000.f * vehicle_attitude.q[0]; //w
+	gimbal_control.quaternion[1] = 10000.f * vehicle_attitude.q[1]; //x
+	gimbal_control.quaternion[2] = 10000.f * vehicle_attitude.q[2]; //y
+	gimbal_control.quaternion[3] = 10000.f * vehicle_attitude.q[3]; //z
 	gimbal_control.yaw_deg_desire = vehicle_attitude.yawspeed * M_RAD_TO_DEG_F * 10.f;
 
 	orb_copy(ORB_ID(control_state), _control_state_sub, &_control_state);
