@@ -177,7 +177,7 @@ param set MAV_PROTO_VER 2
 # Start MAVLink on USB, developers can use the MAVLink shell
 mavlink start -r 800000 -d /dev/ttyACM0 -m config
 # run mavlink on the Gimbal port
-mavlink start -r 2000 -d /dev/ttyS1 -m config -b 115200
+mavlink start -r 2000 -d /dev/ttyS1 -m config -b 500000
 
 #
 # Logging
