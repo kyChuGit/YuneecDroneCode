@@ -20,7 +20,7 @@ set(config_module_list
 	drivers/boards/px4fmu-v2
 	drivers/rgbled
 	drivers/mpu6000
-	drivers/mpu9250
+#TO FIT	drivers/mpu9250
 	drivers/lsm303d
 	drivers/l3gd20
 	drivers/hmc5883
@@ -58,7 +58,7 @@ set(config_module_list
 	systemcmds/config
 	systemcmds/dumpfile
 	#systemcmds/esc_calib
-	systemcmds/hardfault_log
+#TO FIT	systemcmds/hardfault_log
 	systemcmds/mixer
 	systemcmds/motor_ramp
 	systemcmds/mtd
@@ -79,6 +79,7 @@ set(config_module_list
 	drivers/test_ppm
 	#lib/rc/rc_tests
 	modules/commander/commander_tests
+	modules/mc_pos_control/mc_pos_control_tests
 	modules/controllib_test
 	modules/mavlink/mavlink_tests
 	modules/unit_test
@@ -204,9 +205,11 @@ set(config_io_extra_libs
 add_custom_target(sercon)
 set_target_properties(sercon PROPERTIES
 	PRIORITY "SCHED_PRIORITY_DEFAULT"
-	MAIN "sercon" STACK_MAIN "2048")
+	MAIN "sercon" STACK_MAIN "2048"
+	COMPILE_FLAGS "-Os")
 
 add_custom_target(serdis)
 set_target_properties(serdis PROPERTIES
 	PRIORITY "SCHED_PRIORITY_DEFAULT"
-	MAIN "serdis" STACK_MAIN "2048")
+	MAIN "serdis" STACK_MAIN "2048"
+	COMPILE_FLAGS "-Os")

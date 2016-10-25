@@ -66,7 +66,7 @@ list(APPEND CMAKE_MODULE_PATH ${PX4_SOURCE_DIR}/cmake/posix)
 #		MODULE_LIST	: list of modules
 #
 #	Output:
-#		OUT	: generated builtin_commands.c src
+#		OUT	: stem of generated apps.cpp/apps.h ("apps")
 #
 #	Example:
 #		px4_posix_generate_builtin_commands(
@@ -97,12 +97,14 @@ function(px4_posix_generate_builtin_commands)
 			set(builtin_apps_string
 				"${builtin_apps_string}\tapps[\"${MAIN}\"] = ${MAIN}_main;\n")
 			set(builtin_apps_decl_string
-				"${builtin_apps_decl_string}extern int ${MAIN}_main(int argc, char *argv[]);\n")
+				"${builtin_apps_decl_string}int ${MAIN}_main(int argc, char *argv[]);\n")
 			math(EXPR command_count "${command_count}+1")
 		endif()
 	endforeach()
-	configure_file(${PX4_SOURCE_DIR}/cmake/posix/apps.h_in
-		${OUT})
+	configure_file(${PX4_SOURCE_DIR}/src/platforms/apps.cpp.in
+		${OUT}.cpp)
+	configure_file(${PX4_SOURCE_DIR}/src/platforms/apps.h.in
+		${OUT}.h)
 endfunction()
 
 #=============================================================================
@@ -174,28 +176,32 @@ function(px4_os_add_flags)
                 mavlink/include/mavlink
                 )
 
-# This block sets added_exe_linker_flags.
-if ("${BOARD}" STREQUAL "bebop")
-	# Use the -pthread if the firmware is build for the parrot bebop.
-	# This resolves some linker errors in DriverFramework, when building
-	# a static target.
-	set(added_exe_linker_flags "-pthread")
-else()
-	set(added_exe_linker_flags)
-endif()
-
 # This block sets added_definitions and added_cxx_flags.
 if(UNIX AND APPLE)
         set(added_definitions
 		-D__PX4_POSIX
 		-D__PX4_DARWIN
 		-D__DF_DARWIN
-		-DCLOCK_MONOTONIC=1
 		-Dnoreturn_function=__attribute__\(\(noreturn\)\)
 		-include ${PX4_INCLUDE_DIR}visibility.h
                 )
 
 	set(added_cxx_flags)
+
+	if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
+		message(FATAL_ERROR "PX4 Firmware requires XCode 8 or newer on Mac OS. Version installed on this system: ${CMAKE_CXX_COMPILER_VERSION}")
+	endif()
+
+	EXEC_PROGRAM(uname ARGS -v  OUTPUT_VARIABLE DARWIN_VERSION)
+	STRING(REGEX MATCH "[0-9]+" DARWIN_VERSION ${DARWIN_VERSION})
+	# message(STATUS "PX4 Darwin Version: ${DARWIN_VERSION}")
+	if (DARWIN_VERSION LESS 16)
+		list(APPEND added_definitions
+			-DCLOCK_MONOTONIC=1
+			-DCLOCK_REALTIME=0
+			-D__PX4_APPLE_LEGACY
+			)
+	endif()
 
 else()
 
@@ -203,7 +209,6 @@ else()
 		-D__PX4_POSIX
 		-D__PX4_LINUX
 		-D__DF_LINUX
-		-DCLOCK_MONOTONIC=1
 		-Dnoreturn_function=__attribute__\(\(noreturn\)\)
 		-include ${PX4_INCLUDE_DIR}visibility.h
                 )
@@ -214,6 +219,8 @@ else()
 		)
 
 endif()
+
+set(added_exe_linker_flags)
 
 # This block sets added_c_flags (appends to others).
 if ("${BOARD}" STREQUAL "eagle" OR "${BOARD}" STREQUAL "excelsior")

@@ -60,11 +60,6 @@
 
 #include "drv_io_timer.h"
 
-#include <chip.h>
-#include <up_internal.h>
-#include <up_arch.h>
-
-#include <stm32.h>
 #include <stm32_gpio.h>
 #include <stm32_tim.h>
 
@@ -394,7 +389,7 @@ static int timer_set_rate(unsigned timer, unsigned rate)
 }
 
 
-static int io_timer_init_timer(unsigned timer)
+int io_timer_init_timer(unsigned timer)
 {
 	/* Do this only once per timer */
 
@@ -708,6 +703,10 @@ int io_timer_set_ccr(unsigned channel, uint16_t value)
 		} else {
 
 			/* configure the channel */
+#ifdef BOARD_PWM_DRIVE_ACTIVE_LOW
+			unsigned period = rARR(channels_timer(channel));
+			value = period - value;
+#endif
 
 			if (value > 0) {
 				value--;
@@ -727,6 +726,12 @@ uint16_t io_channel_get_ccr(unsigned channel)
 	if (io_timer_validate_channel_index(channel) == 0 &&
 	    io_timer_get_channel_mode(channel) == IOTimerChanMode_PWMOut) {
 		value = REG(channels_timer(channel), timer_io_channels[channel].ccr_offset) + 1;
+
+#ifdef BOARD_PWM_DRIVE_ACTIVE_LOW
+		unsigned period = rARR(channels_timer(channel));
+		value = period - value;
+#endif
+
 	}
 
 	return value;

@@ -19,7 +19,7 @@ set(config_module_list
 	drivers/px4io
 	drivers/boards/px4fmu-v2
 	drivers/rgbled
-##TO FIT	drivers/mpu6000
+#TO FIT	drivers/mpu6000
 	drivers/mpu9250
 	drivers/lsm303d
 	drivers/l3gd20
@@ -28,18 +28,18 @@ set(config_module_list
 	#drivers/mb12xx
 	#drivers/srf02
 	drivers/sf0x
-	drivers/ll40ls
+	#drivers/ll40ls
 	drivers/trone
 	drivers/gps
 	drivers/pwm_out_sim
 	#drivers/hott
 	#drivers/hott/hott_telemetry
 	#drivers/hott/hott_sensors
-## TO FIT	drivers/blinkm
+	#drivers/blinkm
 	drivers/airspeed
 	drivers/ets_airspeed
 	drivers/meas_airspeed
-	drivers/frsky_telemetry
+	#drivers/frsky_telemetry
 	modules/sensors
 	#drivers/mkblctrl
 	drivers/px4flow
@@ -49,7 +49,7 @@ set(config_module_list
 	drivers/camera_trigger
 	drivers/bst
 	drivers/snapdragon_rc_pwm
-## TO FIT	drivers/lis3mdl
+##TO FIT	drivers/lis3mdl
 
 	#
 	# System commands

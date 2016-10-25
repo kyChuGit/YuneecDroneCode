@@ -108,7 +108,7 @@ public:
 	/**
 	 * Start the main task.
 	 *
-	 * @return	OK on success.
+	 * @return	PX4_OK on success.
 	 */
 	int		start();
 
@@ -344,12 +344,6 @@ private:
 namespace att_control
 {
 
-/* oddly, ERROR is not defined for c++ */
-#ifdef ERROR
-# undef ERROR
-#endif
-static const int ERROR = -1;
-
 FixedwingAttitudeControl	*g_control = nullptr;
 }
 
@@ -583,7 +577,7 @@ FixedwingAttitudeControl::parameters_update()
 	_wheel_ctrl.set_integrator_max(_parameters.w_integrator_max);
 	_wheel_ctrl.set_max_rate(math::radians(_parameters.w_rmax));
 
-	return OK;
+	return PX4_OK;
 }
 
 void
@@ -1162,6 +1156,7 @@ FixedwingAttitudeControl::task_main()
 			_actuators.control[actuator_controls_s::INDEX_FLAPS] = _flaps_applied;
 			_actuators.control[5] = _manual.aux1;
 			_actuators.control[actuator_controls_s::INDEX_AIRBRAKES] = _flaperons_applied;
+			// FIXME: this should use _vcontrol_mode.landing_gear_pos in the future
 			_actuators.control[7] = _manual.aux3;
 
 			/* lazily publish the setpoint only once available */
@@ -1221,7 +1216,7 @@ FixedwingAttitudeControl::start()
 		return -errno;
 	}
 
-	return OK;
+	return PX4_OK;
 }
 
 int fw_att_control_main(int argc, char *argv[])
@@ -1245,7 +1240,7 @@ int fw_att_control_main(int argc, char *argv[])
 			return 1;
 		}
 
-		if (OK != att_control::g_control->start()) {
+		if (PX4_OK != att_control::g_control->start()) {
 			delete att_control::g_control;
 			att_control::g_control = nullptr;
 			warn("start failed");

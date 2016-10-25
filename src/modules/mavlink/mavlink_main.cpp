@@ -40,6 +40,7 @@
  */
 
 #include <px4_config.h>
+#include <px4_defines.h>
 #include <px4_getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -91,12 +92,6 @@
 #ifndef MAVLINK_CRC_EXTRA
 #error MAVLINK_CRC_EXTRA has to be defined on PX4 systems
 #endif
-
-/* oddly, ERROR is not defined for c++ */
-#ifdef ERROR
-# undef ERROR
-#endif
-static const int ERROR = -1;
 
 #define DEFAULT_REMOTE_PORT_UDP			14550 ///< GCS port per MAVLink spec
 #define DEFAULT_DEVICE_NAME			"/dev/ttyS1"
@@ -192,6 +187,8 @@ Mavlink::Mavlink() :
 	_mavlink_ftp(nullptr),
 	_mavlink_log_handler(nullptr),
 	_mavlink_shell(nullptr),
+	_mavlink_ulog(nullptr),
+	_mavlink_ulog_stop_requested(false),
 	_mode(MAVLINK_MODE_NORMAL),
 	_channel(MAVLINK_COMM_0),
 	_radio_id(0),
@@ -439,8 +436,8 @@ Mavlink::destroy_all_instances()
 			iterations++;
 
 			if (iterations > 1000) {
-				warnx("ERROR: Couldn't stop all mavlink instances.");
-				return ERROR;
+				PX4_ERR("Couldn't stop all mavlink instances.");
+				return PX4_ERROR;
 			}
 		}
 
@@ -695,8 +692,8 @@ int Mavlink::mavlink_open_uart(int baud, const char *uart_name)
 	case 1000000: speed = B1000000; break;
 
 	default:
-		warnx("ERROR: Unsupported baudrate: %d\n\tsupported examples:\n\t9600, 19200, 38400, 57600\t\n115200\n230400\n460800\n921600\n1000000\n",
-		      baud);
+		PX4_ERR("Unsupported baudrate: %d\n\tsupported examples:\n\t9600, 19200, 38400, 57600\t\n115200\n230400\n460800\n921600\n1000000\n",
+			baud);
 		return -EINVAL;
 	}
 
@@ -852,17 +849,15 @@ Mavlink::set_hil_enabled(bool hil_enabled)
 	if (hil_enabled && !_hil_enabled) {
 		_hil_enabled = true;
 		configure_stream("HIL_ACTUATOR_CONTROLS", 200.0f);
-		configure_stream("HIL_CONTROLS", 200.0f); //for compatibility, publish the old message as well
 	}
 
 	/* disable HIL */
 	if (!hil_enabled && _hil_enabled) {
 		_hil_enabled = false;
 		configure_stream("HIL_ACTUATOR_CONTROLS", 0.0f);
-		configure_stream("HIL_CONTROLS", 0.0f);
 
 	} else {
-		ret = ERROR;
+		ret = PX4_ERROR;
 	}
 
 	return ret;
@@ -882,7 +877,7 @@ Mavlink::get_free_tx_buf()
 		return  1500;
 
 	} else {
-		// No FIONWRITE on Linux
+		// No FIONSPACE on Linux todo:use SIOCOUTQ  and queue size to emulate FIONSPACE
 #if !defined(__PX4_LINUX) && !defined(__PX4_DARWIN)
 		(void) ioctl(_uart_fd, FIONSPACE, (unsigned long)&buf_free);
 #else
@@ -1362,7 +1357,7 @@ Mavlink::configure_stream(const char *stream_name, const float rate)
 	/* if we reach here, the stream list does not contain the stream */
 	warnx("stream %s not found", stream_name);
 
-	return ERROR;
+	return PX4_ERROR;
 }
 
 void
@@ -1432,7 +1427,7 @@ Mavlink::message_buffer_init(int size)
 	int ret;
 
 	if (_message_buffer.data == 0) {
-		ret = ERROR;
+		ret = PX4_ERROR;
 		_message_buffer.size = 0;
 
 	} else {
@@ -1604,8 +1599,13 @@ Mavlink::update_rate_mult()
 		}
 	}
 
+	float mavlink_ulog_streaming_rate_inv = 1.0f;
+	if (_mavlink_ulog) {
+		mavlink_ulog_streaming_rate_inv = 1.f - _mavlink_ulog->current_data_rate();
+	}
+
 	/* scale up and down as the link permits */
-	float bandwidth_mult = (float)(_datarate - const_rate) / rate;
+	float bandwidth_mult = (float)(_datarate * mavlink_ulog_streaming_rate_inv - const_rate) / rate;
 
 	/* if we do not have flow control, limit to the set data rate */
 	if (!get_flow_control_enabled()) {
@@ -1824,7 +1824,7 @@ Mavlink::task_main(int argc, char *argv[])
 
 	if (err_flag) {
 		usage();
-		return ERROR;
+		return PX4_ERROR;
 	}
 
 	if (_datarate == 0) {
@@ -1839,7 +1839,7 @@ Mavlink::task_main(int argc, char *argv[])
 	if (get_protocol() == SERIAL) {
 		if (Mavlink::instance_exists(_device_name, this)) {
 			warnx("%s already running", _device_name);
-			return ERROR;
+			return PX4_ERROR;
 		}
 
 		PX4_INFO("mode: %s, data rate: %d B/s on %s @ %dB",
@@ -1853,7 +1853,7 @@ Mavlink::task_main(int argc, char *argv[])
 
 		if (_uart_fd < 0 && _mode != MAVLINK_MODE_CONFIG) {
 			warn("could not open %s", _device_name);
-			return ERROR;
+			return PX4_ERROR;
 
 		} else if (_uart_fd < 0 && _mode == MAVLINK_MODE_CONFIG) {
 			/* the config link is optional */
@@ -1863,7 +1863,7 @@ Mavlink::task_main(int argc, char *argv[])
 	} else if (get_protocol() == UDP) {
 		if (Mavlink::get_instance_for_network_port(_network_port) != nullptr) {
 			warnx("port %d already occupied", _network_port);
-			return ERROR;
+			return PX4_ERROR;
 		}
 
 		PX4_INFO("mode: %s, data rate: %d B/s on udp port %hu remote port %hu",
@@ -1899,6 +1899,10 @@ Mavlink::task_main(int argc, char *argv[])
 	MavlinkOrbSubscription *status_sub = add_orb_subscription(ORB_ID(vehicle_status));
 	uint64_t status_time = 0;
 	MavlinkOrbSubscription *ack_sub = add_orb_subscription(ORB_ID(vehicle_command_ack));
+	/* We don't want to miss the first advertise of an ACK, so we subscribe from the
+	 * beginning and not just when the topic exists. */
+	ack_sub->subscribe_from_beginning(true);
+
 	uint64_t ack_time = 0;
 	MavlinkOrbSubscription *mavlink_log_sub = add_orb_subscription(ORB_ID(mavlink_log));
 
@@ -2151,10 +2155,12 @@ Mavlink::task_main(int argc, char *argv[])
 		}
 
 		/* send command ACK */
+		uint16_t current_command_ack = 0;
 		if (ack_sub->update(&ack_time, &command_ack)) {
 			mavlink_command_ack_t msg;
 			msg.result = command_ack.result;
 			msg.command = command_ack.command;
+			current_command_ack = command_ack.command;
 
 			mavlink_msg_command_ack_send_struct(get_channel(), &msg);
 		}
@@ -2174,6 +2180,27 @@ Mavlink::task_main(int argc, char *argv[])
 			msg.device = SERIAL_CONTROL_DEV_SHELL;
 			msg.count = _mavlink_shell->read(msg.data, sizeof(msg.data));
 			mavlink_msg_serial_control_send_struct(get_channel(), &msg);
+		}
+
+		/* check for ulog streaming messages */
+		if (_mavlink_ulog) {
+			if (_mavlink_ulog_stop_requested) {
+				_mavlink_ulog->stop();
+				_mavlink_ulog = nullptr;
+				_mavlink_ulog_stop_requested = false;
+			} else {
+				if (current_command_ack == vehicle_command_s::VEHICLE_CMD_LOGGING_START) {
+					_mavlink_ulog->start_ack_received();
+				}
+				int ret = _mavlink_ulog->handle_update(get_channel());
+				if (ret < 0) { //abort the streaming on error
+					if (ret != -1) {
+						PX4_WARN("mavlink ulog stream update failed, stopping (%i)", ret);
+					}
+					_mavlink_ulog->stop();
+					_mavlink_ulog = nullptr;
+				}
+			}
 		}
 
 		/* check for requested subscriptions */
@@ -2361,6 +2388,8 @@ int Mavlink::start_helper(int argc, char *argv[])
 int
 Mavlink::start(int argc, char *argv[])
 {
+	MavlinkULog::initialize();
+
 	// Wait for the instance count to go up one
 	// before returning to the shell
 	int ic = Mavlink::instance_count();
@@ -2454,7 +2483,27 @@ Mavlink::display_status()
 	printf("\ttxerr: %.3f kB/s\n", (double)_rate_txerr);
 	printf("\trx: %.3f kB/s\n", (double)_rate_rx);
 	printf("\trate mult: %.3f\n", (double)_rate_mult);
+	if (_mavlink_ulog) {
+		printf("\tULog rate: %.1f%% of max %.1f%%\n", (double)_mavlink_ulog->current_data_rate()*100.,
+				(double)_mavlink_ulog->maximum_data_rate()*100.);
+	}
 	printf("\taccepting commands: %s\n", (accepting_commands()) ? "YES" : "NO");
+	printf("\tMAVLink version: %i\n", _protocol_version);
+
+	printf("\ttransport protocol: ");
+	switch (_protocol) {
+	case UDP:
+		printf("UDP (%i)\n", _network_port);
+		break;
+
+	case TCP:
+		printf("TCP\n");
+		break;
+
+	case SERIAL:
+		printf("serial (%s @%i)\n", _device_name, _baudrate);
+		break;
+	}
 }
 
 int

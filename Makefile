@@ -9,7 +9,7 @@
 # 1. Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
 # 2. Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditionsrc/modules/uavcanesc/nshterm/nshterm.c<<s and the following disclaimer in
+#    notice, this list of conditions and the following disclaimer in
 #    the documentation and/or other materials provided with the
 #    distribution.
 # 3. Neither the name PX4 nor the names of its contributors may be
@@ -114,6 +114,12 @@ else
 	BUILD_DIR_SUFFIX :=
 endif
 
+# additional config parameters passed to cmake
+CMAKE_ARGS :=
+ifdef EXTERNAL_MODULES_LOCATION
+	CMAKE_ARGS := -DEXTERNAL_MODULES_LOCATION:STRING=$(EXTERNAL_MODULES_LOCATION)
+endif
+
 SRC_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 # Functions
@@ -122,7 +128,7 @@ SRC_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 define cmake-build
 +@$(eval BUILD_DIR = $(SRC_DIR)/build_$@$(BUILD_DIR_SUFFIX))
 +@if [ $(PX4_CMAKE_GENERATOR) = "Ninja" ] && [ -e $(BUILD_DIR)/Makefile ]; then rm -rf $(BUILD_DIR); fi
-+@if [ ! -e $(BUILD_DIR)/CMakeCache.txt ]; then mkdir -p $(BUILD_DIR) && cd $(BUILD_DIR) && cmake .. -G$(PX4_CMAKE_GENERATOR) -DCONFIG=$(1) || (cd .. && rm -rf $(BUILD_DIR)); fi
++@if [ ! -e $(BUILD_DIR)/CMakeCache.txt ]; then mkdir -p $(BUILD_DIR) && cd $(BUILD_DIR) && cmake .. -G$(PX4_CMAKE_GENERATOR) -DCONFIG=$(1) $(CMAKE_ARGS) || (cd .. && rm -rf $(BUILD_DIR)); fi
 +@echo "PX4 CONFIG: $(BUILD_DIR)"
 +@$(PX4_MAKE) -C "$(BUILD_DIR)" $(PX4_MAKE_ARGS) $(ARGS)
 endef
@@ -148,7 +154,6 @@ NUTTX_CONFIG_TARGETS := $(patsubst nuttx_%,%,$(filter nuttx_%,$(ALL_CONFIG_TARGE
 # ADD CONFIGS HERE
 # --------------------------------------------------------------------
 #  Do not put any spaces between function arguments.
-
 
 # All targets.
 $(ALL_CONFIG_TARGETS):
@@ -190,11 +195,11 @@ run_sitl_ros: _sitl_deprecation
 # Other targets
 # --------------------------------------------------------------------
 
-.PHONY: uavcan_firmware check check_format format unittest tests qgc_firmware package_firmware clean submodulesclean distclean
+.PHONY: uavcan_firmware compiler_version check check_format format unittest tests qgc_firmware package_firmware clean submodulesclean distclean
 .NOTPARALLEL:
 
 # All targets with just dependencies but no recipe must either be marked as phony (or have the special @: as recipe).
-.PHONY: checks_defaults checks_bootloaders checks_tests checks_alts checks_uavcan checks_sitls checks_last quick_check check_px4fmu-v4_default tests extra_firmware
+.PHONY: checks_defaults checks_bootloaders checks_tests checks_alts checks_uavcan checks_sitls checks_last quick_check tests extra_firmware
 
 uavcan_firmware:
 ifeq ($(VECTORCONTROL),1)
@@ -203,8 +208,9 @@ ifeq ($(VECTORCONTROL),1)
 endif
 
 check_px4fmu-v4_default: uavcan_firmware
+
 check_px4fmu-v4_default_and_uavcan: check_px4fmu-v4_default
-	@echo
+	@echo VECTORCONTROL=$VECTORCONTROL
 ifeq ($(VECTORCONTROL),1)
 	@echo "Cleaning up vectorcontrol firmware"
 	@rm -rf vectorcontrol
@@ -216,11 +222,11 @@ sizes:
 
 
 checks_defaults: \
+	check_px4nucleoF767ZI-v1_default \
 	check_px4fmu-v1_default \
 	check_px4fmu-v2_default \
 	check_px4fmu-v4_default \
 	check_mindpx-v2_default \
-	check_mavstation_default \
 	check_px4cannode-v1_default \
 	check_px4esc-v1_default \
 	check_s2740vc-v1_default \
@@ -252,10 +258,13 @@ checks_last: \
 	check_tests \
 	check_format \
 
+compiler_version:
+	-arm-none-eabi-gcc --version
+
 # All default targets that don't require a special build environment (currently built on semaphore-ci)
-check: checks_defaults checks_tests checks_alts checks_uavcan checks_bootloaders checks_last
+check: compiler_version checks_defaults checks_tests checks_alts checks_uavcan checks_bootloaders checks_last sizes
 # quick_check builds a single nuttx and posix target, runs testing, and checks the style
-quick_check: check_posix_sitl_default check_px4fmu-v4_default check_tests check_format
+quick_check: compiler_version check_posix_sitl_default check_px4fmu-v4_default check_tests check_format sizes
 
 check_format:
 	$(call colorecho,"Checking formatting with astyle")
@@ -295,14 +304,14 @@ package_firmware:
 
 clean:
 	@rm -rf build_*/
-	@$(MAKE) -C NuttX/nuttx clean
+	-@$(MAKE) -C NuttX/nuttx clean
 
 submodulesclean:
 	@git submodule sync --recursive
 	@git submodule deinit -f .
 	@git submodule update --init --recursive --force
 
-distclean: submodulesclean
+distclean: submodulesclean clean
 	@git clean -ff -x -d -e ".project" -e ".cproject"
 
 # All other targets are handled by PX4_MAKE. Add a rule here to avoid printing an error.
