@@ -27,6 +27,7 @@ set(config_module_list
 	modules/sensors
 	drivers/vmount
 	drivers/camera_trigger
+	drivers/protocol_splitter
 
 	#
 	# System commands
