@@ -176,8 +176,13 @@ load_mon start
 param set MAV_PROTO_VER 2
 # Start MAVLink on USB, developers can use the MAVLink shell
 mavlink start -r 800000 -d /dev/ttyACM0 -m config
+
+# multiplex mavlink 2 & ymavlink on the gimbal serial
+protocol_splitter start /dev/ttyS1
+# seems we need to start vmount before mavlink (probably due to some ioctl's)
+vmount start -d /dev/ymavlink -b 500000
 # run mavlink on the Gimbal port
-mavlink start -r 2000 -d /dev/ttyS1 -m config -b 500000
+mavlink start -r 5000 -d /dev/mavlink -m config -b 500000
 
 #
 # Logging
@@ -305,10 +310,6 @@ if param compare SYS_COMPANION 1921600
 then
 	mavlink start -r 200000 -b 921600 -d /dev/ttyS1
 else
-
-#	if vmount start -d /dev/ttyS1 -b 115200
-#	then
-#	fi
 
 	if param compare SYS_COMPANION 2921600
 	then
