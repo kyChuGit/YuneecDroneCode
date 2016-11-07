@@ -134,6 +134,16 @@ then
 	param set MNT_MAN_PITCH 2
 	param set MNT_MAN_YAW 1
 
+	# ekf2
+	param set EKF2_MIN_OBS_DT 50
+	param set EKF2_MAG_DELAY 0
+	param set EKF2_BARO_DELAY 0
+	param set EKF2_GPS_DELAY 100
+	param set EKF2_OF_DELAY 5
+	param set EKF2_RNG_DELAY 5
+	param set EKF2_ASP_DELAY 0
+	param set EKF2_EV_DELAY 0
+
 	param save
 fi
 unset AUTOCNF
