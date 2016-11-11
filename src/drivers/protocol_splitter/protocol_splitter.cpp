@@ -158,12 +158,18 @@ pollevent_t DevCommon::poll_state(struct file *filp)
 	fds[0].fd = _fd;
 	fds[0].events = POLLIN;
 
-	int ret = ::poll(fds, sizeof(fds) / sizeof(fds[0]), 0);
+	/* Here we should just check the poll state (which is called before an actual poll waiting).
+	 * Instead we poll on the fd with some timeout, and then pretend that there is data.
+	 * This will let the calling poll return immediately (there's still no busy loop since
+	 * we do actually poll here).
+	 * We do this because there is no simple way with the given interface to poll on
+	 * the _fd in here or by overriding some other method.
+	 */
 
-	if (ret > 0) {
-		if (fds[0].revents & POLLIN) {
-			state |= POLLIN;
-		}
+	::poll(fds, sizeof(fds) / sizeof(fds[0]), 100);
+
+	if (fds[0].revents & POLLIN) {
+		state |= POLLIN;
 	}
 
 	return state;
