@@ -188,11 +188,12 @@ param set MAV_PROTO_VER 2
 #mavlink start -r 800000 -d /dev/ttyACM0 -m config
 
 # multiplex mavlink 2 & ymavlink on the gimbal serial
-protocol_splitter start /dev/ttyS1
+#protocol_splitter start /dev/ttyS1
 # seems we need to start vmount before mavlink (probably due to some ioctl's)
-vmount start -d /dev/ymavlink -b 500000
+#vmount start -d /dev/ymavlink -b 500000
 # run mavlink on the Gimbal port
-mavlink start -r 5000 -d /dev/mavlink -m config -b 500000
+#mavlink start -r 40000 -d /dev/mavlink -m config -b 500000
+mavlink start -r 40000 -d /dev/ttyS1 -m config -b 500000
 
 #
 # Logging
