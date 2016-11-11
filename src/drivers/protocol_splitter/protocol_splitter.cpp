@@ -278,6 +278,13 @@ ssize_t Mavlink2Dev::write(struct file *filp, const char *buffer, size_t buflen)
 			_parser_state = ParserState::GotLength;
 			lock();
 
+		} else if ((unsigned char)buffer[0] == 254) { // mavlink 1
+			uint8_t payload_len = buffer[1];
+			_packet_len = payload_len + 8;
+
+			_parser_state = ParserState::GotLength;
+			lock();
+
 		} else {
 			PX4_ERR("parser error");
 			return 0;
