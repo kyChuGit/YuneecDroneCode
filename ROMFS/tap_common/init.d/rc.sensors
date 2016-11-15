@@ -12,15 +12,13 @@ then
 fi
 
 # External I2C bus
-if hmc5883 -C -T -X start
+if hmc5883 -C -T -X start -R8
 then
-	param set CAL_MAG0_ROT 8
 fi
 
 # External I2C bus
 if ist8310 -C start
 then
-	param set CAL_MAG0_ROT 8
 fi
 
 # Internal I2C bus
