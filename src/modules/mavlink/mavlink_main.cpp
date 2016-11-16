@@ -639,6 +639,7 @@ int Mavlink::get_component_id()
 
 int Mavlink::mavlink_open_uart(int baud, const char *uart_name)
 {
+#ifdef __PX4_NUTTX
 #ifndef B460800
 #define B460800 460800
 #endif
@@ -651,9 +652,18 @@ int Mavlink::mavlink_open_uart(int baud, const char *uart_name)
 #define B921600 921600
 #endif
 
+#ifndef B750000
+#define B750000 750000
+#endif
+
 #ifndef B1000000
 #define B1000000 1000000
 #endif
+
+#ifndef B1500000
+#define B1500000 1500000
+#endif
+#endif /* __PX4_NUTTX */
 
 	/* process baud rate */
 	int speed;
@@ -701,6 +711,10 @@ int Mavlink::mavlink_open_uart(int baud, const char *uart_name)
 
 	case 500000: speed = B500000; break;
 
+#ifdef B750000
+	case 750000: speed = B750000; break;
+#endif
+
 	case 921600: speed = B921600; break;
 
 	case 1000000: speed = B1000000; break;
@@ -714,7 +728,7 @@ int Mavlink::mavlink_open_uart(int baud, const char *uart_name)
 #endif
 
 	default:
-		PX4_ERR("Unsupported baudrate: %d\n\tsupported examples:\n\t9600, 19200, 38400, 57600\t\n115200\n230400\n460800\n500000\n921600\n1000000\n",
+		PX4_ERR("Unsupported baudrate: %d\n\tsupported examples:\n\t9600, 19200, 38400, 57600\t\n115200\n230400\n460800\n500000\n921600\n1000000\n150000\n",
 			baud);
 		return -EINVAL;
 	}
