@@ -152,8 +152,6 @@ int DevCommon::close(file *filp)
 
 pollevent_t DevCommon::poll_state(struct file *filp)
 {
-	pollevent_t state = 0;
-
 	pollfd fds[1];
 	fds[0].fd = _fd;
 	fds[0].events = POLLIN;
@@ -168,11 +166,7 @@ pollevent_t DevCommon::poll_state(struct file *filp)
 
 	::poll(fds, sizeof(fds) / sizeof(fds[0]), 100);
 
-	if (fds[0].revents & POLLIN) {
-		state |= POLLIN;
-	}
-
-	return state;
+	return POLLIN;
 }
 
 
