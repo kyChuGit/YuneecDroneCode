@@ -208,7 +208,11 @@ param set MAV_PROTO_VER 2
 
 # Without this sleep the gimbal can crash if the older mag with the hmc5883 is used.
 usleep 2000000
-mavlink start -r 40000 -d /dev/ttyS1 -m config -b $BAUDRATE
+
+mavlink_dup start -d /dev/mavlink
+mavlink_dup add -d /dev/ttyS1 -b $BAUDRATE
+mavlink_dup add -d /dev/ttyACM0 -p
+mavlink start -r 40000 -d /dev/mavlink -m config -b $BAUDRATE
 
 unset BAUDRATE
 
