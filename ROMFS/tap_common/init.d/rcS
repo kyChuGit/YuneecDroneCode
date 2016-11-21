@@ -175,7 +175,7 @@ load_mon start
 # later move this to a proper place
 param set MAV_PROTO_VER 2
 # Start MAVLink on USB, developers can use the MAVLink shell
-mavlink start -r 800000 -d /dev/ttyACM0 -m config
+#mavlink start -r 800000 -d /dev/ttyACM0 -m config
 
 # multiplex mavlink 2 & ymavlink on the gimbal serial
 protocol_splitter start /dev/ttyS1
@@ -187,12 +187,12 @@ mavlink start -r 5000 -d /dev/mavlink -m config -b 500000
 #
 # Logging
 #
-#if logger start -b 2 -t
-#then
-#fi
-if sdlog2 start -r 50 -a -b 4 -t
+if logger start -t -m mavlink -q 3
 then
 fi
+#if sdlog2 start -r 50 -a -b 4 -t
+#then
+#fi
 
 #
 # Fixed wing setup
