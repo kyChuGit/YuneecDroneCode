@@ -28,6 +28,7 @@ set(config_module_list
 	drivers/vmount
 	drivers/camera_trigger
 	drivers/protocol_splitter
+	drivers/mavlink_dup
 
 	#
 	# System commands
