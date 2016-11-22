@@ -1,7 +1,7 @@
 uorb start
 param load
 param set MAV_TYPE 13
-param set SYS_AUTOSTART 6001
+param set SYS_AUTOSTART 6021
 param set SYS_RESTART_TYPE 2
 dataman start
 param set BAT_N_CELLS 3

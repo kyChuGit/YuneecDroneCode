@@ -76,8 +76,17 @@ fi
 #
 if param compare SYS_AUTOSTART 0
 then
-	param set SYS_AUTOSTART 6001
+	param set SYS_AUTOSTART 6021
 	param set SYS_AUTOCONFIG 1
+fi
+
+#
+# This is to migrate everyone from 6001 to param 6021.
+# TODO: remove this again once enough time has passed
+#
+if param compare SYS_AUTOSTART 6001
+then
+	param set SYS_AUTOSTART 6021
 fi
 
 #
