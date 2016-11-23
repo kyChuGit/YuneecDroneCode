@@ -51,6 +51,9 @@
 #include <termios.h>
 #include <errno.h>
 
+#include <v2.0/mavlink_types.h>
+#include <v2.0/standard/mavlink.h>
+
 #include <nuttx/serial/tioctl.h> // for ioctl definitions
 
 
@@ -451,7 +454,7 @@ ssize_t MavlinkDuplicator::write(struct file *filp, const char *buffer, size_t b
 	case ParserState::Idle:
 		ASSERT(buflen >= 3);
 
-		if ((unsigned char)buffer[0] == 253) { // mavlink 2
+		if ((unsigned char)buffer[0] == MAVLINK_STX) { // mavlink 2
 			uint8_t payload_len = buffer[1];
 			uint8_t incompat_flags = buffer[2];
 			_packet_len = payload_len + 12;
@@ -462,7 +465,7 @@ ssize_t MavlinkDuplicator::write(struct file *filp, const char *buffer, size_t b
 
 			_parser_state = ParserState::GotLength;
 
-		} else if ((unsigned char)buffer[0] == 254) { // mavlink 1
+		} else if ((unsigned char)buffer[0] == MAVLINK_STX_MAVLINK1) { // mavlink 1
 			uint8_t payload_len = buffer[1];
 			_packet_len = payload_len + 8;
 
