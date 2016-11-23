@@ -107,7 +107,8 @@ protected:
 
 	int set_baudrate(int fd, int baudrate);
 
-	/** try to write to fd, if there is enough write space left, otherwise fail and return 0 */
+	/** try to write to fd, if there is enough write space left and return number of bytes written,
+	 *  otherwise fail and return 0 */
 	inline ssize_t try_write(int fd, const char *buffer, size_t buflen);
 
 	/** switch to connected state if backend data read or disconnect on backend timeout */
@@ -472,8 +473,9 @@ ssize_t MavlinkDuplicator::write(struct file *filp, const char *buffer, size_t b
 			_parser_state = ParserState::GotLength;
 
 		} else {
-			PX4_ERR("parser error");
-			return 0;
+			PX4_ERR("parser error"); /* this should really be an assertion, ie if this fails, the implementation is wrong */
+			errno = EINVAL;
+			return -1;
 		}
 
 	//no break
