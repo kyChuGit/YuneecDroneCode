@@ -61,6 +61,7 @@ then
 	#
 	# Flight modes
 	#
+	param set RC_MAP_FLTMODE 5
 	param set COM_FLTMODE1 5
 	param set COM_FLTMODE4 2
 	param set COM_FLTMODE6 0
