@@ -172,6 +172,7 @@ int st24_decode(uint8_t byte, uint8_t *rssi, uint8_t *lost_count, uint16_t *chan
 			switch (_rxpacket.type) {
 
 			case ST24_PACKET_TYPE_CHANNELDATA12: {
+					// used packet type by Typhoon-H with ST16
 					ChannelData12 *d = (ChannelData12 *)_rxpacket.st24_data;
 
 					// Scale from 0..255 to 100%.

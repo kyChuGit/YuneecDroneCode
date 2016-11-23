@@ -49,6 +49,8 @@ __BEGIN_DECLS
 #define ST24_STX1		0x55
 #define ST24_STX2		0x55
 
+#define ST16_VIRTUAL_ARM_BUTTON_CHANNEL 12 -1 // override channel 12, be careful not to exceed channel count
+
 enum ST24_PACKET_TYPE {
 	ST24_PACKET_TYPE_CHANNELDATA12 = 0,
 	ST24_PACKET_TYPE_CHANNELDATA24,
