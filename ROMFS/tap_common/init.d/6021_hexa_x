@@ -113,11 +113,20 @@ then
 	param set RC10_TRIM 1514.0
 	param set RC11_MAX 2197.0
 	param set RC11_MIN 832.0
-	param set RC11_REV -1.0
 	param set RC11_TRIM 1514.0
-	
-	param set RC_MAP_GEAR_SW 11
 fi
+
+#
+# Landing gear settings
+#
+param set RC_MAP_GEAR_SW 11
+param set RC11_REV -1.0
+
+#
+# Arm button settings
+#
+param set RC_MAP_ARM_SW 12
+param set COM_ARM_SWISBTN 1
 
 if tap_esc start -d /dev/ttyS4 -n 6
 then
