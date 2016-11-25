@@ -1310,13 +1310,15 @@ PX4FMU::cycle()
 		struct vehicle_command_s cmd;
 		orb_copy(ORB_ID(vehicle_command), _vehicle_cmd_sub, &cmd);
 
-		// Check for a DSM pairing command
-		if (((unsigned int)cmd.command == vehicle_command_s::VEHICLE_CMD_START_RX_PAIR) && ((int)cmd.param1 == 0)) {
-			dsm_bind_ioctl((int)cmd.param2);
-		} else
-		// Check for a SR/RX pairing command
-		if (((unsigned int)cmd.command == vehicle_command_s::VEHICLE_CMD_START_RX_PAIR) && ((int)cmd.param1 == 1)) {
-			sr_bind((int)cmd.param2);
+		// Check for a pairing command
+		if ((unsigned int)cmd.command == vehicle_command_s::VEHICLE_CMD_START_RX_PAIR) {
+			if((int)cmd.param1 == 0) {
+				// DSM pairing command
+				dsm_bind_ioctl((int)cmd.param2);
+			} else if((int)cmd.param1 == 1) {
+				// SR/RX pairing command
+				sr_bind((int)cmd.param2);
+			}
 		}
 
 	}
