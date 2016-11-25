@@ -22,17 +22,17 @@ then
 	#
 
 	# pitch angle & rate setting
-	param set MC_PITCHRATE_P 0.06
-	param set MC_PITCHRATE_I 0.004
-	param set MC_PITCHRATE_D 0.0012
-	param set MC_PITCHRATE_MAX 300.0
+	param set MC_PITCHRATE_P 0.13
+	param set MC_PITCHRATE_I 0.000
+	param set MC_PITCHRATE_D 0.0032
+	param set MC_PITCHRATE_MAX 360.0
 	param set MC_PITCH_P 4.5
 
 	# roll angle & rate setting
-	param set MC_ROLLRATE_P 0.08
-	param set MC_ROLLRATE_I 0.006
-	param set MC_ROLLRATE_D 0.0015
-	param set MC_ROLLRATE_MAX 300.0
+	param set MC_ROLLRATE_P 0.13
+	param set MC_ROLLRATE_I 0.000
+	param set MC_ROLLRATE_D 0.0032
+	param set MC_ROLLRATE_MAX 360.0
 	param set MC_ROLL_P 4.5
 
 	# yaw angle & rate setting
