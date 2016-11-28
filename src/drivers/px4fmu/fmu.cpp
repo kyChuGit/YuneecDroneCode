@@ -1499,14 +1499,6 @@ PX4FMU::cycle()
 									&raw_rc_count, raw_rc_values, input_rc_s::RC_INPUT_MAX_CHANNELS));
 				}
 
-				// Handle the red arm/disarm button of the ST16 which is mapped to Channel 1 (Throttle) value ~832
-				// Override a free channel with a virtual switch which has maximum value when button is pressed
-				// needs to be used in combination with arm_switch and parameter COM_ARM_SWISBTN enabled
-				if(800 < raw_rc_values[0] && raw_rc_values[0] < 850)
-					raw_rc_values[ST16_VIRTUAL_ARM_BUTTON_CHANNEL] = 2000;
-				else
-					raw_rc_values[ST16_VIRTUAL_ARM_BUTTON_CHANNEL] = 1000;
-
 				// The st24 will keep outputting RC channels and RSSI even if RC has been lost.
 				// The only way to detect RC loss is therefore to look at the lost_count.
 

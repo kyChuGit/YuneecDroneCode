@@ -57,22 +57,21 @@ then
 	#
 	param set BAT_N_CELLS 4
 	param set BAT_V_CHARGED 4.2
-	
+
 	#
 	# Flight modes
 	#
-	param set RC_MAP_FLTMODE 5
 	param set COM_FLTMODE1 5
 	param set COM_FLTMODE4 2
 	param set COM_FLTMODE6 0
-	
+
 	#
 	# RTL settings
 	#
 	param set RTL_DESCEND_ALT 5.0
 	param set RTL_RETURN_ALT 10.0
 	param set RTL_LAND_DELAY 0.0
-	
+
 	#
 	# ST16 RC settings
 	# (speed slider in top right corner has to be on max!)
@@ -86,48 +85,57 @@ then
 	param set RC_MAP_AUX3 9
 	param set RC_MAP_AUX4 10
 	
-	param set RC1_MAX 1970.0
-	param set RC1_MIN 1053.0
-	param set RC1_TRIM 1053.0
-	param set RC2_MAX 1970.0
-	param set RC2_MIN 1057.0
+	param set RC1_MAX 1833.0
+	param set RC1_MIN 1163.0
+	param set RC1_REV 1.0
+	param set RC1_TRIM 1163.0 # 1156.0 would be better but fails RC calibration check
+	param set RC2_MAX 1833.0
+	param set RC2_MIN 1163.0
 	param set RC2_REV -1.0
-	param set RC2_TRIM 1515.0
-	param set RC3_MAX 1969.0
-	param set RC3_MIN 1056.0
-	param set RC3_TRIM 1515.0
-	param set RC4_MAX 1939.0
-	param set RC4_MIN 1055.0
+	param set RC2_TRIM 1500.0
+	param set RC3_MAX 1833.0
+	param set RC3_MIN 1163.0
+	param set RC3_REV 1.0
+	param set RC3_TRIM 1500.0
+	param set RC4_MAX 1833.0
+	param set RC4_MIN 1163.0
 	param set RC4_REV -1.0
-	param set RC4_TRIM 1515.0
-	param set RC5_MAX 1969.0
-	param set RC5_MIN 1060.0
-	param set RC5_TRIM 1514.0
-	param set RC7_MAX 1970.0
-	param set RC7_MIN 1056.0
-	param set RC7_TRIM 1513.0
-	param set RC8_MAX 1968.0
-	param set RC8_MIN 1055.0
-	param set RC8_TRIM 1511.0
-	param set RC10_MAX 1969.0
-	param set RC10_MIN 1060.0
-	param set RC10_TRIM 1514.0
-	param set RC11_MAX 2197.0
-	param set RC11_MIN 832.0
-	param set RC11_TRIM 1514.0
+	param set RC4_TRIM 1497.0
+	param set RC5_MAX 1833.0
+	param set RC5_MIN 1167.0
+	param set RC5_TRIM 1500.0
+	param set RC6_MAX 2000.0
+	param set RC6_MIN 1000.0
+	param set RC6_TRIM 1500.0
+	param set RC7_MAX 1833.0
+	param set RC7_MIN 1163.0
+	param set RC7_TRIM 1500.0
+	param set RC8_MAX 1833.0
+	param set RC8_MIN 1163.0
+	param set RC8_TRIM 1500.0
+	param set RC9_MAX 1833.0
+	param set RC9_MIN 1067.0
+	param set RC9_TRIM 1500.0
+	param set RC10_MAX 1833.0
+	param set RC10_MIN 1067.0
+	param set RC10_TRIM 1500.0
+	param set RC11_MAX 2000.0
+	param set RC11_MIN 1000.0
+	param set RC11_REV -1.0
+	param set RC11_TRIM 1500.0
+
+	#
+	# Switch mapping
+	#
+	param set RC_MAP_FLTMODE 5
+	param set RC_MAP_GEAR_SW 11
+
+	#
+	# Arm button settings
+	#
+	param set RC_MAP_ARM_SW 12
+	param set COM_ARM_SWISBTN 1
 fi
-
-#
-# Landing gear settings
-#
-param set RC_MAP_GEAR_SW 11
-param set RC11_REV -1.0
-
-#
-# Arm button settings
-#
-param set RC_MAP_ARM_SW 12
-param set COM_ARM_SWISBTN 1
 
 if tap_esc start -d /dev/ttyS4 -n 6
 then

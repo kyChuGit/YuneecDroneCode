@@ -49,7 +49,7 @@ __BEGIN_DECLS
 #define ST24_STX1		0x55
 #define ST24_STX2		0x55
 
-#define ST16_VIRTUAL_ARM_BUTTON_CHANNEL 12 -1 // override channel 12, be careful not to exceed channel count
+#define ST16_VIRTUAL_ARM_BUTTON_CHANNEL (12 -1) // override channel 12, be careful not to exceed channel count
 
 enum ST24_PACKET_TYPE {
 	ST24_PACKET_TYPE_CHANNELDATA12 = 0,
@@ -68,19 +68,7 @@ typedef struct {
 } ReceiverFcPacket;
 
 /**
- * RC Channel data (12 channels).
- *
- * This is incoming from the ST24
- */
-typedef struct {
-	uint16_t t;			///< packet counter or clock
-	uint8_t	rssi;			///< signal strength
-	uint8_t	lost_count;		///< Number of UART packets sent since reception of last RF frame (100 frame means RC timeout of 1s)
-	uint8_t	channel[18];		///< channel data, 12 channels (12 bit numbers)
-} ChannelData12;
-
-/**
- * RC Channel data (12 channels).
+ * RC Channel data (24 channels).
  *
  */
 typedef struct {

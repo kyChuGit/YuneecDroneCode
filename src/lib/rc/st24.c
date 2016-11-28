@@ -61,18 +61,19 @@ const char *decode_states[] = {"UNSYNCED",
 			      };
 
 /* define range mapping here, -+100% -> 1000..2000 */
-#define ST24_RANGE_MIN 500.0f
-#define ST24_RANGE_MAX 3500.0f
+#define ST24_RANGE_MIN 0.0f
+#define ST24_RANGE_MAX 4096.0f
 
 #define ST24_TARGET_MIN 1000.0f
 #define ST24_TARGET_MAX 2000.0f
 
 /* pre-calculate the floating point stuff as far as possible at compile time */
 #define ST24_SCALE_FACTOR ((ST24_TARGET_MAX - ST24_TARGET_MIN) / (ST24_RANGE_MAX - ST24_RANGE_MIN))
-#define ST24_SCALE_OFFSET (int)(ST24_TARGET_MIN - (ST24_SCALE_FACTOR * ST24_RANGE_MIN + 0.5f))
+#define ST24_SCALE_OFFSET (ST24_TARGET_MIN - (ST24_SCALE_FACTOR * ST24_RANGE_MIN))
 
 static enum ST24_DECODE_STATE _decode_state = ST24_DECODE_STATE_UNSYNCED;
 static uint8_t _rxlen;
+static uint16_t _last_throttle_raw = 0;
 
 static ReceiverFcPacket _rxpacket;
 
@@ -171,61 +172,49 @@ int st24_decode(uint8_t byte, uint8_t *rssi, uint8_t *lost_count, uint16_t *chan
 
 			switch (_rxpacket.type) {
 
-			case ST24_PACKET_TYPE_CHANNELDATA12: {
-					// used packet type by Typhoon-H with ST16
-					ChannelData12 *d = (ChannelData12 *)_rxpacket.st24_data;
-
-					// Scale from 0..255 to 100%.
-					*rssi = d->rssi * (100.0f / 255.0f);
-					*lost_count = d->lost_count;
-
-					/* this can lead to rounding of the strides */
-					*channel_count = (max_chan_count < 12) ? max_chan_count : 12;
-
-					unsigned stride_count = (*channel_count * 3) / 2;
-					unsigned chan_index = 0;
-
-					for (unsigned i = 0; i < stride_count; i += 3) {
-						channels[chan_index] = ((uint16_t)d->channel[i] << 4);
-						channels[chan_index] |= ((uint16_t)(0xF0 & d->channel[i + 1]) >> 4);
-						/* convert values to 1000-2000 ppm encoding in a not too sloppy fashion */
-						channels[chan_index] = (uint16_t)(channels[chan_index] * ST24_SCALE_FACTOR + .5f) + ST24_SCALE_OFFSET;
-						chan_index++;
-
-						channels[chan_index] = ((uint16_t)d->channel[i + 2]);
-						channels[chan_index] |= (((uint16_t)(0x0F & d->channel[i + 1])) << 8);
-						/* convert values to 1000-2000 ppm encoding in a not too sloppy fashion */
-						channels[chan_index] = (uint16_t)(channels[chan_index] * ST24_SCALE_FACTOR + .5f) + ST24_SCALE_OFFSET;
-						chan_index++;
-					}
-				}
-				break;
-
+			case ST24_PACKET_TYPE_CHANNELDATA12:
 			case ST24_PACKET_TYPE_CHANNELDATA24: {
 					ChannelData24 *d = (ChannelData24 *)&_rxpacket.st24_data;
 
-					// Scale from 0..255 to 100%.
+					/* Scale from 0..255 to 100%. */
 					*rssi = d->rssi * (100.0f / 255.0f);
 					*lost_count = d->lost_count;
 
 					/* this can lead to rounding of the strides */
-					*channel_count = (max_chan_count < 24) ? max_chan_count : 24;
+					if (_rxpacket.type == ST24_PACKET_TYPE_CHANNELDATA12) {
+						*channel_count = (max_chan_count < 12) ? max_chan_count : 12;
+					} else if (_rxpacket.type == ST24_PACKET_TYPE_CHANNELDATA24) {
+						*channel_count = (max_chan_count < 24) ? max_chan_count : 24;
+					}
 
+					/* decode channels always 3 bytes give 2 channels */
 					unsigned stride_count = (*channel_count * 3) / 2;
 					unsigned chan_index = 0;
-
 					for (unsigned i = 0; i < stride_count; i += 3) {
 						channels[chan_index] = ((uint16_t)d->channel[i] << 4);
 						channels[chan_index] |= ((uint16_t)(0xF0 & d->channel[i + 1]) >> 4);
-						/* convert values to 1000-2000 ppm encoding in a not too sloppy fashion */
-						channels[chan_index] = (uint16_t)(channels[chan_index] * ST24_SCALE_FACTOR + .5f) + ST24_SCALE_OFFSET;
 						chan_index++;
 
 						channels[chan_index] = ((uint16_t)d->channel[i + 2]);
 						channels[chan_index] |= (((uint16_t)(0x0F & d->channel[i + 1])) << 8);
-						/* convert values to 1000-2000 ppm encoding in a not too sloppy fashion */
-						channels[chan_index] = (uint16_t)(channels[chan_index] * ST24_SCALE_FACTOR + .5f) + ST24_SCALE_OFFSET;
 						chan_index++;
+					}
+
+					/* Handle the red arm/disarm button of the ST16 which is mapped to Channel 1 (Throttle) raw value 0 when pressed
+					 * Override a free channel with a virtual switch which has maximum value when button is pressed
+					 * needs to be used in combination with arm_switch maped to the channel and parameter COM_ARM_SWISBTN enabled */
+					if(channels[0] == 0) {
+						channels[ST16_VIRTUAL_ARM_BUTTON_CHANNEL] = (uint16_t)ST24_RANGE_MAX;
+						/* preserve the throttle value when ST16 arm button pressed */
+						channels[0] = _last_throttle_raw;
+					} else {
+						channels[ST16_VIRTUAL_ARM_BUTTON_CHANNEL] = (uint16_t)ST24_RANGE_MIN;
+						_last_throttle_raw = channels[0];
+					}
+
+					/* convert values from 0-4096 serial value to 1000-2000 ppm encoding */
+					for (unsigned i = 0; i < *channel_count; i++) {
+						channels[i] = (uint16_t)(channels[i] * ST24_SCALE_FACTOR + ST24_SCALE_OFFSET + .5f);
 					}
 				}
 				break;
