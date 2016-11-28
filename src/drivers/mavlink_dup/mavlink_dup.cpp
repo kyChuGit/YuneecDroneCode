@@ -104,6 +104,8 @@ public:
 	virtual ssize_t	write(struct file *filp, const char *buffer, size_t buflen);
 
 protected:
+	/** try to open all backends that are not yet opened */
+	void	try_open();
 
 	int set_baudrate(int fd, int baudrate);
 
@@ -233,15 +235,19 @@ int MavlinkDuplicator::add_backend_device(const char *device_path, int baudrate,
 
 int MavlinkDuplicator::open(file *filp)
 {
-	bool success = true;
+	return CDev::open(filp);
+}
 
+void MavlinkDuplicator::try_open()
+{
 	for (int i = 0; i < _num_backends; ++i) {
 		if (_backends[i].fd == -1) {
 			_backends[i].fd = ::open(_backends[i].device_path, O_RDWR | O_NOCTTY);
 
 			if (_backends[i].fd == -1) {
-				PX4_ERR("Failed to open %s (%i)", _backends[i].device_path, errno);
-				success = false;
+				if (errno != ENOTCONN) {
+					PX4_ERR("Failed to open %s (%i)", _backends[i].device_path, errno);
+				}
 
 			} else {
 				int ret = set_baudrate(_backends[i].fd, _backends[i].baudrate);
@@ -252,9 +258,6 @@ int MavlinkDuplicator::open(file *filp)
 			}
 		}
 	}
-
-	CDev::open(filp);
-	return success ? 0 : -1;
 }
 
 int MavlinkDuplicator::set_baudrate(int fd, int baudrate)
@@ -366,6 +369,8 @@ pollevent_t MavlinkDuplicator::poll_state(struct file *filp)
 	 */
 
 	static_assert(max_num_backends >= 2, "Need at least two backends");
+
+	try_open();
 
 	pollfd fds[max_num_backends];
 	int num_polling_fd;
