@@ -113,7 +113,7 @@
 #  error "board_config.h needs to define BOARD_HAS_PWM"
 #endif
 
-const char* kSystemArmedRejectBind = "[FMU] system armed, bind request rejected";
+const char *kSystemArmedRejectBind = "[FMU] system armed, bind request rejected";
 
 class PX4FMU : public device::CDev
 {
@@ -1312,10 +1312,11 @@ PX4FMU::cycle()
 
 		// Check for a pairing command
 		if ((unsigned int)cmd.command == vehicle_command_s::VEHICLE_CMD_START_RX_PAIR) {
-			if((int)cmd.param1 == 0) {
+			if ((int)cmd.param1 == 0) {
 				// DSM pairing command
 				dsm_bind_ioctl((int)cmd.param2);
-			} else if((int)cmd.param1 == 1) {
+
+			} else if ((int)cmd.param1 == 1) {
 				// SR/RX pairing command
 				sr_bind((int)cmd.param2);
 			}
@@ -2764,6 +2765,7 @@ PX4FMU::sr_bind(int /*srModel*/)
 		char unbindcmd[] = {0x55, 0x55, 0x08, 0x04, 0x00, 0x00, 0x42, 0x49, 0x4E, 0x44, 0xB0};
 		int res = ::write(_rcs_fd, &unbindcmd[0], sizeof(unbindcmd));
 		PX4_INFO("WROTE UNBIND COMMAND: %d (fd: %d)", res, _rcs_fd);
+
 	} else {
 		warnx(kSystemArmedRejectBind);
 	}
