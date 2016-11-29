@@ -707,17 +707,25 @@ int Mavlink::mavlink_open_uart(int baud, const char *uart_name)
 
 	case 230400: speed = B230400; break;
 
+#ifdef B460800
 	case 460800: speed = B460800; break;
+#endif
 
+#ifdef B500000
 	case 500000: speed = B500000; break;
+#endif
 
 #ifdef B750000
 	case 750000: speed = B750000; break;
 #endif
 
+#ifdef B921600
 	case 921600: speed = B921600; break;
+#endif
 
+#ifdef B1000000
 	case 1000000: speed = B1000000; break;
+#endif
 
 #ifdef B1500000
 	case 1500000: speed = B1500000; break;
