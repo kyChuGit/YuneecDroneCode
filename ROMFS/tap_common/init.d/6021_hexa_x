@@ -97,10 +97,10 @@ then
 	param set RC3_MIN 1163.0
 	param set RC3_REV 1.0
 	param set RC3_TRIM 1500.0
-	param set RC4_MAX 1833.0
-	param set RC4_MIN 1163.0
+	param set RC4_MAX 1764.0
+	param set RC4_MIN 1233.0
 	param set RC4_REV -1.0
-	param set RC4_TRIM 1497.0
+	param set RC4_TRIM 1500.0
 	param set RC5_MAX 1833.0
 	param set RC5_MIN 1167.0
 	param set RC5_TRIM 1500.0
