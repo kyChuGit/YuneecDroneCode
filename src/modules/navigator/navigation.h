@@ -46,7 +46,7 @@
 #include <stdbool.h>
 
 #if defined(MEMORY_CONSTRAINED_SYSTEM)
-#  define NUM_MISSIONS_SUPPORTED 10
+#  define NUM_MISSIONS_SUPPORTED 100
 #else
 #  define NUM_MISSIONS_SUPPORTED 256
 #endif
