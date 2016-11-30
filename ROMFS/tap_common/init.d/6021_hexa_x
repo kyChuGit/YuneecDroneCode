@@ -66,13 +66,6 @@ then
 	param set COM_FLTMODE6 0
 
 	#
-	# RTL settings
-	#
-	param set RTL_DESCEND_ALT 5.0
-	param set RTL_RETURN_ALT 10.0
-	param set RTL_LAND_DELAY 0.0
-
-	#
 	# ST16 RC settings
 	# (speed slider in top right corner has to be on max!)
 	param set RC_CHAN_CNT 12
