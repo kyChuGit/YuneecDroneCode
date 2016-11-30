@@ -494,13 +494,15 @@ ssize_t MavlinkDuplicator::write(struct file *filp, const char *buffer, size_t b
 				ret = try_write(_backends[_connected_backend_writer].fd, buffer, buflen);
 			} else {
 			*/
-			ret = buflen;
+			ret = 0;
 
 			for (int i = 0; i < _num_backends; ++i) {
-				ssize_t ret_cur = try_write(_backends[i].fd, buffer, buflen);
+				if (_backends[i].fd != -1) {
+					ssize_t ret_cur = try_write(_backends[i].fd, buffer, buflen);
 
-				if (ret_cur < ret) { //use the minimum (mavlink uses it only for error statistics)
-					ret = ret_cur;
+					if (ret_cur > ret) {
+						ret = ret_cur;
+					}
 				}
 			}
 
