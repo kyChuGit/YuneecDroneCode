@@ -399,11 +399,11 @@ pollevent_t MavlinkDuplicator::poll_state(struct file *filp)
 
 	// update state
 	if (_connected_backend_reader >= 0) {
-		if (fds[0].revents & POLLIN) {
-			_polling_backend = _connected_backend_reader;
-
-		} else if (num_polling_fd == 2 && (fds[1].revents & POLLIN)) {
+		if (num_polling_fd == 2 && (fds[1].revents & POLLIN)) {
 			_polling_backend = _preferred_backend; //switch to preferred
+
+		} else if (fds[0].revents & POLLIN) {
+			_polling_backend = _connected_backend_reader;
 
 		} else {
 			_polling_backend = -1;
@@ -413,7 +413,14 @@ pollevent_t MavlinkDuplicator::poll_state(struct file *filp)
 		_polling_backend = -1;
 
 		for (int i = 0; i < _num_backends; ++i) {
-			if (fds[i].revents & POLLIN) {
+			// Instead of the following, we use another ioctl() to check for available data.
+			// this is only needed because of the protocol_splitter, which always signals
+			// available data in poll()
+			// if (fds[i].revents & POLLIN) {
+			int buf_avail = 0;
+			int ioctl_ret = ::ioctl(_backends[i].fd, FIONREAD, (unsigned long)&buf_avail);
+
+			if (ioctl_ret == 0 && buf_avail > 0) {
 				_polling_backend = i;
 				break;
 			}
