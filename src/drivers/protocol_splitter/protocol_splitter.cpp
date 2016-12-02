@@ -107,6 +107,8 @@ protected:
 	};
 	ParserState _parser_state = ParserState::Idle;
 
+	bool _had_data = false; ///< whether poll() returned available data
+
 private:
 };
 
@@ -164,7 +166,8 @@ pollevent_t DevCommon::poll_state(struct file *filp)
 	 * the _fd in here or by overriding some other method.
 	 */
 
-	::poll(fds, sizeof(fds) / sizeof(fds[0]), 100);
+	int ret = ::poll(fds, sizeof(fds) / sizeof(fds[0]), 100);
+	_had_data = ret > 0 && (fds[0].revents & POLLIN);
 
 	return POLLIN;
 }
@@ -253,6 +256,10 @@ Mavlink2Dev::Mavlink2Dev()
 
 ssize_t Mavlink2Dev::read(struct file *filp, char *buffer, size_t buflen)
 {
+	if (!_had_data) {
+		return 0;
+	}
+
 	//no need for locking here
 	return ::read(_fd, buffer, buflen);
 }
