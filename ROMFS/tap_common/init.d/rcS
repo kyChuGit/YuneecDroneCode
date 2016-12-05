@@ -31,10 +31,7 @@ then
 	echo "microSD present"
 	unset DATAMAN_OPT
 
-	set START_LOGGER 0
-	if sdlog2 start -r 50 -a -b 4 -t
-	then
-	fi
+	set START_LOGGER 2
 
 else
 	if mkfatfs /dev/mmcsd0
@@ -197,6 +194,14 @@ commander start
 # Start CPU load monitor
 #
 load_mon start
+
+
+if [ $START_LOGGER == 2 ]
+then
+	if sdlog2 start -r 50 -a -b 4 -t
+	then
+	fi
+fi
 
 # mavlink baudrate for Gimbal UART
 set BAUDRATE 115200
