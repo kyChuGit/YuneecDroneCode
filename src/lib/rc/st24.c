@@ -183,6 +183,7 @@ int st24_decode(uint8_t byte, uint8_t *rssi, uint8_t *lost_count, uint16_t *chan
 					/* this can lead to rounding of the strides */
 					if (_rxpacket.type == ST24_PACKET_TYPE_CHANNELDATA12) {
 						*channel_count = (max_chan_count < 12) ? max_chan_count : 12;
+
 					} else if (_rxpacket.type == ST24_PACKET_TYPE_CHANNELDATA24) {
 						*channel_count = (max_chan_count < 24) ? max_chan_count : 24;
 					}
@@ -190,6 +191,7 @@ int st24_decode(uint8_t byte, uint8_t *rssi, uint8_t *lost_count, uint16_t *chan
 					/* decode channels always 3 bytes give 2 channels */
 					unsigned stride_count = (*channel_count * 3) / 2;
 					unsigned chan_index = 0;
+
 					for (unsigned i = 0; i < stride_count; i += 3) {
 						channels[chan_index] = ((uint16_t)d->channel[i] << 4);
 						channels[chan_index] |= ((uint16_t)(0xF0 & d->channel[i + 1]) >> 4);
@@ -203,10 +205,11 @@ int st24_decode(uint8_t byte, uint8_t *rssi, uint8_t *lost_count, uint16_t *chan
 					/* Handle the red arm/disarm button of the ST16 which is mapped to Channel 1 (Throttle) raw value 0 when pressed
 					 * Override a free channel with a virtual switch which has maximum value when button is pressed
 					 * needs to be used in combination with RC_MAP_ARM_SW mapped to the channel and parameter COM_ARM_SWISBTN enabled */
-					if(channels[0] == 0) {
+					if (channels[0] == 0) {
 						channels[ST16_VIRTUAL_ARM_BUTTON_CHANNEL] = (uint16_t)ST24_RANGE_MAX;
 						/* preserve the throttle value when ST16 arm button pressed */
 						channels[0] = _last_throttle_raw;
+
 					} else {
 						channels[ST16_VIRTUAL_ARM_BUTTON_CHANNEL] = (uint16_t)ST24_RANGE_MIN;
 						_last_throttle_raw = channels[0];
