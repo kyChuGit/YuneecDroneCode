@@ -12,7 +12,7 @@ then
 fi
 
 # External I2C bus
-if hmc5883 -C -T -X start -R8
+if hmc5883 -C -T -X -R 6 start
 then
 fi
 
