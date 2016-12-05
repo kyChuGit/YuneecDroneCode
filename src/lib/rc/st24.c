@@ -202,7 +202,7 @@ int st24_decode(uint8_t byte, uint8_t *rssi, uint8_t *lost_count, uint16_t *chan
 
 					/* Handle the red arm/disarm button of the ST16 which is mapped to Channel 1 (Throttle) raw value 0 when pressed
 					 * Override a free channel with a virtual switch which has maximum value when button is pressed
-					 * needs to be used in combination with arm_switch maped to the channel and parameter COM_ARM_SWISBTN enabled */
+					 * needs to be used in combination with RC_MAP_ARM_SW mapped to the channel and parameter COM_ARM_SWISBTN enabled */
 					if(channels[0] == 0) {
 						channels[ST16_VIRTUAL_ARM_BUTTON_CHANNEL] = (uint16_t)ST24_RANGE_MAX;
 						/* preserve the throttle value when ST16 arm button pressed */
