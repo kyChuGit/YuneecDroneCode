@@ -14,10 +14,10 @@ then
 	param set MPC_MANTHR_MIN 0.04
 
 	# RTL settings
-+	param set RTL_RETURN_ALT 10.0
-+	param set RTL_DESCEND_ALT 5.0
-+	param set RTL_LAND_DELAY 0.0
-+	param set COM_DISARM_LAND 2
+	param set RTL_RETURN_ALT 10.0
+	param set RTL_DESCEND_ALT 5.0
+	param set RTL_LAND_DELAY 0.0
+	param set COM_DISARM_LAND 2
 fi
 
 # set environment variables (!= parameters)
