@@ -1543,16 +1543,21 @@ void MulticopterPositionControl::control_auto(float dt)
 			_do_reset_alt_pos_flag = true;
 		}
 
+		// TODO FIXME: leave the landing gear down if the relative altitude is less than 5 meters.
+		const bool high_enough_for_landing_gear = (_pos(2) < -5.0f);
+
 		// During a mission or in loiter it's safe to retract the landing gear.
 		if ((_pos_sp_triplet.current.type == position_setpoint_s::SETPOINT_TYPE_POSITION ||
 		     _pos_sp_triplet.current.type == position_setpoint_s::SETPOINT_TYPE_LOITER) &&
-		    !_vehicle_land_detected.landed) {
+		    !_vehicle_land_detected.landed &&
+		    high_enough_for_landing_gear) {
 			_att_sp.landing_gear = 1.0f;
 
 			// During takeoff and landing, we better put it down again.
 
 		} else if (_pos_sp_triplet.current.type == position_setpoint_s::SETPOINT_TYPE_TAKEOFF ||
-			   _pos_sp_triplet.current.type == position_setpoint_s::SETPOINT_TYPE_LAND) {
+			   _pos_sp_triplet.current.type == position_setpoint_s::SETPOINT_TYPE_LAND ||
+			   !high_enough_for_landing_gear) {
 			_att_sp.landing_gear = -1.0f;
 
 		} else {
