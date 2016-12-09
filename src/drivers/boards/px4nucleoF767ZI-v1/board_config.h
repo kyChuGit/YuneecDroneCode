@@ -130,13 +130,6 @@ __BEGIN_DECLS
 #define PX4_SPI_BUS_BARO    5
 #define PX4_SPI_BUS_ICM     6
 
-/* Use these in place of the spi_dev_e enumeration to select a specific SPI device on SPI1 */
-/*                              BUS:DEV For clarity and indexing
- */
-#define PX4_MK_SPI_SEL(b,d)      ((((b) & 0xf) << 4) + ((d) & 0xf))
-#define PX4_SPI_BUS_ID(bd)       (((bd) >> 4) & 0xf)
-#define PX4_SPI_DEV_ID(bd)       ((bd) & 0xf)
-
 #define PX4_SPIDEV_GYRO			 PX4_MK_SPI_SEL(PX4_SPI_BUS_SENSORS,0)
 #define PX4_SPIDEV_ACCEL_MAG	 PX4_MK_SPI_SEL(PX4_SPI_BUS_SENSORS,1)
 #define PX4_SPIDEV_MPU			 PX4_MK_SPI_SEL(PX4_SPI_BUS_SENSORS,2)
@@ -381,31 +374,26 @@ extern void stm32_spiinitialize(void);
 
 extern int stm32_spi_bus_initialize(void);
 
-void board_spi_reset(int ms);
-
-extern void stm32_usbinitialize(void);
-
-extern void board_peripheral_reset(int ms);
-
-
-/****************************************************************************
- * Name: nsh_archinitialize
+/****************************************************************************************************
+ * Name: board_spi_reset board_peripheral_reset
  *
  * Description:
- *   Perform architecture specific initialization for NSH.
+ *   Called to reset SPI and the perferal bus
  *
- *   CONFIG_NSH_ARCHINIT=y :
- *     Called from the NSH library
- *
- *   CONFIG_BOARD_INITIALIZE=y, CONFIG_NSH_LIBRARY=y, &&
- *   CONFIG_NSH_ARCHINIT=n :
- *     Called from board_initialize().
- *
- ****************************************************************************/
+ ****************************************************************************************************/
 
-#ifdef CONFIG_NSH_LIBRARY
-int nsh_archinitialize(void);
-#endif
+void board_spi_reset(int ms);
+extern void board_peripheral_reset(int ms);
+
+/****************************************************************************************************
+ * Name: stm32_usbinitialize
+ *
+ * Description:
+ *   Called to configure USB IO.
+ *
+ ****************************************************************************************************/
+
+extern void stm32_usbinitialize(void);
 
 #include "../common/board_common.h"
 

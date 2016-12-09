@@ -47,12 +47,6 @@
 #include <nuttx/compiler.h>
 #include <stdint.h>
 
-__BEGIN_DECLS
-
-/* these headers are not C++ safe */
-#include <stm32.h>
-#include <arch/board/board.h>
-
 /****************************************************************************************************
  * Definitions
  ****************************************************************************************************/
@@ -86,6 +80,10 @@ __BEGIN_DECLS
 #define GPIO_SPI_CS_MS5611		(GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_SET|GPIO_PORTD|GPIO_PIN7)
 #define GPIO_SPI_CS_ICM_20608_G (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_SET|GPIO_PORTC|GPIO_PIN15)
 
+/* The BMI160 sensor replaces the MPU9250 on some boards. Only one is actually present and connected
+ * to the second GPIO pin on port C. The wrong driver will fail during start becaus of an incorrect WHO_AM_I register.*/
+#define GPIO_SPI_CS_BMI160    (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_SET|GPIO_PORTC|GPIO_PIN2)
+
 #define GPIO_SPI_CS_FRAM		(GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_SET|GPIO_PORTD|GPIO_PIN10)
 
 /*  Define the Ready interrupts */
@@ -107,6 +105,7 @@ __BEGIN_DECLS
 #define GPIO_SPI_CS_OFF_LIS3MDL		_PIN_OFF(GPIO_SPI_CS_LIS3MDL)
 #define GPIO_SPI_CS_OFF_MS5611		_PIN_OFF(GPIO_SPI_CS_MS5611)
 #define GPIO_SPI_CS_OFF_ICM_20608_G _PIN_OFF(GPIO_SPI_CS_ICM_20608_G)
+#define GPIO_SPI_CS_OFF_BMI160 _PIN_OFF(GPIO_SPI_CS_BMI160)
 
 #define GPIO_DRDY_OFF_MPU9250		_PIN_OFF(GPIO_DRDY_MPU9250)
 #define GPIO_DRDY_OFF_HMC5983		_PIN_OFF(GPIO_DRDY_HMC5983)
@@ -292,8 +291,9 @@ __BEGIN_DECLS
 		{GPIO_VDD_BRICK_VALID,   0,                       0}, }
 
 /* This board provides a DMA pool and APIs */
-
 #define BOARD_DMA_ALLOC_POOL_SIZE 5120
+
+__BEGIN_DECLS
 
 /****************************************************************************************************
  * Public Types
@@ -323,26 +323,6 @@ void board_spi_reset(int ms);
 extern void stm32_usbinitialize(void);
 
 extern void board_peripheral_reset(int ms);
-
-
-/****************************************************************************
- * Name: nsh_archinitialize
- *
- * Description:
- *   Perform architecture specific initialization for NSH.
- *
- *   CONFIG_NSH_ARCHINIT=y :
- *     Called from the NSH library
- *
- *   CONFIG_BOARD_INITIALIZE=y, CONFIG_NSH_LIBRARY=y, &&
- *   CONFIG_NSH_ARCHINIT=n :
- *     Called from board_initialize().
- *
- ****************************************************************************/
-
-#ifdef CONFIG_NSH_LIBRARY
-int nsh_archinitialize(void);
-#endif
 
 #include "../common/board_common.h"
 

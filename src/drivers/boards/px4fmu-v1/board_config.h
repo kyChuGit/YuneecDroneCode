@@ -48,12 +48,6 @@
 #include <stdint.h>
 #include <nuttx/board.h>
 
-__BEGIN_DECLS
-
-/* these headers are not C++ safe */
-#include <stm32.h>
-#include <arch/board/board.h>
-
 /****************************************************************************************************
  * Definitions
  ****************************************************************************************************/
@@ -224,6 +218,8 @@ __BEGIN_DECLS
  */
 #define BOARD_HAS_MULTI_PURPOSE_GPIO 1
 
+__BEGIN_DECLS
+
 /****************************************************************************************************
  * Public Types
  ****************************************************************************************************/
@@ -252,25 +248,6 @@ extern void stm32_spiinitialize(void);
 extern void stm32_usbinitialize(void);
 
 #define board_peripheral_reset(ms)
-
-/****************************************************************************
- * Name: nsh_archinitialize
- *
- * Description:
- *   Perform architecture specific initialization for NSH.
- *
- *   CONFIG_NSH_ARCHINIT=y :
- *     Called from the NSH library
- *
- *   CONFIG_BOARD_INITIALIZE=y, CONFIG_NSH_LIBRARY=y, &&
- *   CONFIG_NSH_ARCHINIT=n :
- *     Called from board_initialize().
- *
- ****************************************************************************/
-
-#ifdef CONFIG_NSH_LIBRARY
-int nsh_archinitialize(void);
-#endif
 
 #include "../common/board_common.h"
 

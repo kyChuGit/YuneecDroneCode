@@ -3090,12 +3090,18 @@ PARAM_DEFINE_INT32(RC_RSSI_PWM_MIN, 2000);
 PARAM_DEFINE_INT32(SENS_EN_LL40LS, 0);
 
 /**
- * Lightware SF0x laser rangefinder
+ * Lightware laser rangefinder (serial)
  *
  * @reboot_required true
- *
- * @boolean
+ * @min 0
+ * @max 4
  * @group Sensor Enable
+ * @value 0 Disabled
+ * @value 1 SF02
+ * @value 2 SF10/a
+ * @value 3 SF10/b
+ * @value 4 SF10/c
+ * @value 5 SF11/c
  */
 PARAM_DEFINE_INT32(SENS_EN_SF0X, 0);
 
@@ -3120,7 +3126,7 @@ PARAM_DEFINE_INT32(SENS_EN_MB12XX, 0);
 PARAM_DEFINE_INT32(SENS_EN_TRONE, 0);
 
 /**
- * Lightware SF1xx laser rangefinder
+ * Lightware SF1xx laser rangefinder (i2c)
  *
  * @reboot_required true
  * @min 0
@@ -3133,6 +3139,33 @@ PARAM_DEFINE_INT32(SENS_EN_TRONE, 0);
  * @value 4 SF11/c
  */
 PARAM_DEFINE_INT32(SENS_EN_SF1XX, 0);
+
+/**
+ * Thermal control of sensor temperature
+ *
+ * @value -1 Thermal control unavailable
+ * @value 0 Thermal control off
+ * @group Sensor Enable
+ */
+PARAM_DEFINE_INT32(SENS_EN_THERMAL, -1);
+
+/**
+ * Set the PWM output frequency for the MAIN outputs
+ *
+ * IMPORTANT: CHANGING THIS PARAMETER REQUIRES A COMPLETE SYSTEM
+ * REBOOT IN ORDER TO APPLY THE CHANGES. COMPLETELY POWER-CYCLE
+ * THE SYSTEM TO PUT CHANGES INTO EFFECT.
+ *
+ * Set to 400 for industry default or 1000 for high frequency ESCs.
+ *
+ * @reboot_required true
+ *
+ * @min -1
+ * @max 2000
+ * @unit Hz
+ * @group PWM Outputs
+ */
+PARAM_DEFINE_INT32(PWM_RATE, 400);
 
 /**
  * Set the minimum PWM for the MAIN outputs

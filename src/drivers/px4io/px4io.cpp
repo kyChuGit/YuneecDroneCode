@@ -321,6 +321,7 @@ private:
 	int32_t			_rssi_pwm_chan; ///< RSSI PWM input channel
 	int32_t			_rssi_pwm_max; ///< max RSSI input on PWM channel
 	int32_t			_rssi_pwm_min; ///< min RSSI input on PWM channel
+	int32_t			_thermal_control; ///< thermal control state
 	bool			_analog_rc_rssi_stable; ///< true when analog RSSI input is stable
 	float			_analog_rc_rssi_volt; ///< analog RSSI voltage
 
@@ -558,6 +559,7 @@ PX4IO::PX4IO(device::Device *interface) :
 	_rssi_pwm_chan(0),
 	_rssi_pwm_max(0),
 	_rssi_pwm_min(0),
+	_thermal_control(-1),
 	_analog_rc_rssi_stable(false),
 	_analog_rc_rssi_volt(-1.0f),
 	_last_throttle(0.0f),
@@ -1157,6 +1159,30 @@ PX4IO::task_main()
 				param_get(param_find("RC_RSSI_PWM_MAX"), &_rssi_pwm_max);
 				param_get(param_find("RC_RSSI_PWM_MIN"), &_rssi_pwm_min);
 
+				param_t thermal_param = param_find("SENS_EN_THERMAL");
+
+				if (thermal_param != PARAM_INVALID) {
+
+					int32_t thermal_p;
+					param_get(thermal_param, &thermal_p);
+
+					if (thermal_p != _thermal_control || _param_update_force) {
+
+						_thermal_control = thermal_p;
+						/* set power management state for thermal */
+						uint16_t tctrl;
+
+						if (_thermal_control < 0) {
+							tctrl = PX4IO_THERMAL_IGNORE;
+
+						} else {
+							tctrl = PX4IO_THERMAL_OFF;
+						}
+
+						ret = io_reg_set(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_THERMAL, tctrl);
+					}
+				}
+
 				/*
 				 * Set invert mask for PWM outputs (does not apply to S.Bus)
 				 */
@@ -1700,7 +1726,7 @@ PX4IO::dsm_bind_ioctl(int dsmMode)
 		}
 
 	} else {
-		mavlink_log_info(&_mavlink_log_pub, "[IO] system armed, bind request rejected");
+		mavlink_log_info(&_mavlink_log_pub, "[IO] safety off, bind request rejected");
 	}
 }
 
@@ -2471,6 +2497,18 @@ PX4IO::print_status(bool extended_status)
 
 	for (unsigned i = 0; i < _max_actuators; i++) {
 		printf(" %u", io_reg_get(PX4IO_PAGE_DISARMED_PWM, i));
+	}
+
+	/* IMU heater (Pixhawk 2.1) */
+	uint16_t heater_level = io_reg_get(PX4IO_PAGE_SETUP, PX4IO_P_SETUP_THERMAL);
+
+	if (heater_level != UINT16_MAX) {
+		if (heater_level == PX4IO_THERMAL_OFF) {
+			printf("\nIMU heater off", heater_level);
+
+		} else {
+			printf("\nIMU heater level %d", heater_level);
+		}
 	}
 
 	printf("\n");
@@ -3625,7 +3663,9 @@ px4io_main(int argc, char *argv[])
 			fn[1] =	"/fs/microsd/px4io1.bin";
 			fn[2] =	"/fs/microsd/px4io.bin";
 			fn[3] =	nullptr;
-#elif defined(CONFIG_ARCH_BOARD_PX4FMU_V2)
+#elif defined(CONFIG_ARCH_BOARD_PX4FMU_V2) || \
+	  defined(CONFIG_ARCH_BOARD_AUAV_X21) || \
+	  defined(CONFIG_ARCH_BOARD_PX4FMU_V4PRO)
 			fn[0] = "/etc/extras/px4io-v2.bin";
 			fn[1] =	"/fs/microsd/px4io2.bin";
 			fn[2] =	"/fs/microsd/px4io.bin";
