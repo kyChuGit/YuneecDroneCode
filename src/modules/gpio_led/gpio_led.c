@@ -94,6 +94,7 @@ int gpio_led_main(int argc, char *argv[])
 #endif
 
 #if defined(CONFIG_ARCH_BOARD_AUAV_X21)          || \
+	defined(CONFIG_ARCH_BOARD_BAT12_V1)          || \
 	defined(CONFIG_ARCH_BOARD_PX4FMU_V2)         || \
 	defined(CONFIG_ARCH_BOARD_PX4FMU_V4)         || \
 	defined(CONFIG_ARCH_BOARD_PX4FMU_V4PRO)      || \
@@ -122,6 +123,7 @@ int gpio_led_main(int argc, char *argv[])
 			char *pin_name = "PX4FMU GPIO_EXT1";
 #endif
 #if defined(CONFIG_ARCH_BOARD_AUAV_X21)          || \
+	defined(CONFIG_ARCH_BOARD_BAT12_V1)          || \
 	defined(CONFIG_ARCH_BOARD_PX4FMU_V2)         || \
 	defined(CONFIG_ARCH_BOARD_PX4FMU_V4)         || \
 	defined(CONFIG_ARCH_BOARD_PX4FMU_V4PRO)      || \
@@ -171,6 +173,7 @@ int gpio_led_main(int argc, char *argv[])
 
 #endif
 #if defined(CONFIG_ARCH_BOARD_AUAV_X21)          || \
+	defined(CONFIG_ARCH_BOARD_BAT12_V1)          || \
 	defined(CONFIG_ARCH_BOARD_PX4FMU_V2)         || \
 	defined(CONFIG_ARCH_BOARD_PX4FMU_V4)         || \
 	defined(CONFIG_ARCH_BOARD_PX4FMU_V4PRO)      || \
