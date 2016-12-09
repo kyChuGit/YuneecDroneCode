@@ -1,0 +1,48 @@
+#!nsh
+#
+# Standard startup script for PX4FMU v5
+#
+
+
+# Configure all I2C buses to 100 KHz as they
+# are all external or slow
+fmu i2c 1 100000
+fmu i2c 2 100000
+
+if adc start
+then
+fi
+
+if ist8310 start
+then
+fi
+
+if ms5611 -s -T 5607 start
+then
+fi
+
+if mpu6500 start
+then
+fi
+
+if meas_airspeed start
+then
+else
+	if ets_airspeed start
+	then
+	else
+		if ets_airspeed start -b 1
+		then
+		fi
+	fi
+fi
+
+if sf1xx start
+then
+fi
+
+# Wait 20 ms for sensors (because we need to wait for the HRT and work queue callbacks to fire)
+usleep 20000
+if sensors start
+then
+fi
