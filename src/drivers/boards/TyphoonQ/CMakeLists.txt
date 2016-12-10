@@ -1,6 +1,7 @@
 ############################################################################
 #
 #   Copyright (c) 2016 PX4 Development Team. All rights reserved.
+#         Author: David Sidrane <david_s5@nscdg.com>
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,21 +32,20 @@
 #
 ############################################################################
 px4_add_module(
-	MODULE drivers__vmount
-	MAIN vmount
-	STACK_MAIN 1024
+	MODULE drivers__boards__TyphoonQ
+	COMPILE_FLAGS
+		-Os
 	SRCS
-		input.cpp
-		input_mavlink.cpp
-		input_rc.cpp
-		input_rc_st16.cpp
-		input_test.cpp
-		output.cpp
-		output_mavlink.cpp
-		output_rc.cpp
-		output_serial.cpp
-		vmount.cpp
+		../common/board_name.c
+		../common/board_dma_alloc.c
+#		WIP tyq_can.c
+		tyq_pwr.c
+		tyq_init.c
+		tyq_sdio.c
+		tyq_timer_config.c
+		tyq_spi.c
+		tyq_usb.c
+		tyq_led.c
 	DEPENDS
 		platforms__common
 	)
- # vim: set noet ft=cmake fenc=utf-8 ff=unix :

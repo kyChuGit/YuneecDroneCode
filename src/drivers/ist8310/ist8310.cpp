@@ -36,8 +36,7 @@
  *
  * Driver for the IST8310 magnetometer connected via I2C.
  *
- * @author David Sidrane
- * @author Maelok Dong
+ * This driver was written by David Sidrane, modified by Maelok Dong.
  */
 
 #include <px4_config.h>

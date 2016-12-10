@@ -33,7 +33,7 @@
 px4_add_module(
 	MODULE drivers__px4fmu
 	MAIN fmu
-	STACK_MAIN 1200
+	STACK_MAIN 1400
 	COMPILE_FLAGS
 	SRCS
 		fmu.cpp

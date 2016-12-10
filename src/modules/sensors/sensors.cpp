@@ -310,6 +310,7 @@ private:
 		int rc_map_acro_sw;
 		int rc_map_offboard_sw;
 		int rc_map_kill_sw;
+		int rc_map_arm_sw;
 		int rc_map_trans_sw;
 		int rc_map_gear_sw;
 
@@ -335,6 +336,7 @@ private:
 		float rc_acro_th;
 		float rc_offboard_th;
 		float rc_killswitch_th;
+		float rc_armswitch_th;
 		float rc_trans_th;
 		float rc_gear_th;
 		bool rc_assist_inv;
@@ -346,6 +348,7 @@ private:
 		bool rc_acro_inv;
 		bool rc_offboard_inv;
 		bool rc_killswitch_inv;
+		bool rc_armswitch_inv;
 		bool rc_trans_inv;
 		bool rc_gear_inv;
 
@@ -386,6 +389,7 @@ private:
 		param_t rc_map_acro_sw;
 		param_t rc_map_offboard_sw;
 		param_t rc_map_kill_sw;
+		param_t rc_map_arm_sw;
 		param_t rc_map_trans_sw;
 		param_t rc_map_gear_sw;
 
@@ -415,6 +419,7 @@ private:
 		param_t rc_acro_th;
 		param_t rc_offboard_th;
 		param_t rc_killswitch_th;
+		param_t rc_armswitch_th;
 		param_t rc_trans_th;
 		param_t rc_gear_th;
 
@@ -679,6 +684,7 @@ Sensors::Sensors() :
 	_parameter_handles.rc_map_acro_sw = param_find("RC_MAP_ACRO_SW");
 	_parameter_handles.rc_map_offboard_sw = param_find("RC_MAP_OFFB_SW");
 	_parameter_handles.rc_map_kill_sw = param_find("RC_MAP_KILL_SW");
+	_parameter_handles.rc_map_arm_sw = param_find("RC_MAP_ARM_SW");
 	_parameter_handles.rc_map_trans_sw = param_find("RC_MAP_TRANS_SW");
 	_parameter_handles.rc_map_gear_sw = param_find("RC_MAP_GEAR_SW");
 
@@ -709,6 +715,7 @@ Sensors::Sensors() :
 	_parameter_handles.rc_acro_th = param_find("RC_ACRO_TH");
 	_parameter_handles.rc_offboard_th = param_find("RC_OFFB_TH");
 	_parameter_handles.rc_killswitch_th = param_find("RC_KILLSWITCH_TH");
+	_parameter_handles.rc_armswitch_th = param_find("RC_ARMSWITCH_TH");
 	_parameter_handles.rc_trans_th = param_find("RC_TRANS_TH");
 	_parameter_handles.rc_gear_th = param_find("RC_GEAR_TH");
 
@@ -928,6 +935,10 @@ Sensors::parameters_update()
 		PX4_WARN("%s", paramerr);
 	}
 
+	if (param_get(_parameter_handles.rc_map_arm_sw, &(_parameters.rc_map_arm_sw)) != OK) {
+		PX4_WARN("%s", paramerr);
+	}
+
 	if (param_get(_parameter_handles.rc_map_trans_sw, &(_parameters.rc_map_trans_sw)) != OK) {
 		warnx("%s", paramerr);
 	}
@@ -980,6 +991,9 @@ Sensors::parameters_update()
 	param_get(_parameter_handles.rc_killswitch_th, &(_parameters.rc_killswitch_th));
 	_parameters.rc_killswitch_inv = (_parameters.rc_killswitch_th < 0);
 	_parameters.rc_killswitch_th = fabs(_parameters.rc_killswitch_th);
+	param_get(_parameter_handles.rc_armswitch_th, &(_parameters.rc_armswitch_th));
+	_parameters.rc_armswitch_inv = (_parameters.rc_armswitch_th < 0);
+	_parameters.rc_armswitch_th = fabs(_parameters.rc_armswitch_th);
 	param_get(_parameter_handles.rc_trans_th, &(_parameters.rc_trans_th));
 	_parameters.rc_trans_inv = (_parameters.rc_trans_th < 0);
 	_parameters.rc_trans_th = fabs(_parameters.rc_trans_th);
@@ -1001,6 +1015,7 @@ Sensors::parameters_update()
 	_rc.function[rc_channels_s::RC_CHANNELS_FUNCTION_ACRO] = _parameters.rc_map_acro_sw - 1;
 	_rc.function[rc_channels_s::RC_CHANNELS_FUNCTION_OFFBOARD] = _parameters.rc_map_offboard_sw - 1;
 	_rc.function[rc_channels_s::RC_CHANNELS_FUNCTION_KILLSWITCH] = _parameters.rc_map_kill_sw - 1;
+	_rc.function[rc_channels_s::RC_CHANNELS_FUNCTION_ARMSWITCH] = _parameters.rc_map_arm_sw - 1;
 	_rc.function[rc_channels_s::RC_CHANNELS_FUNCTION_TRANSITION] = _parameters.rc_map_trans_sw - 1;
 	_rc.function[rc_channels_s::RC_CHANNELS_FUNCTION_GEAR] = _parameters.rc_map_gear_sw - 1;
 
@@ -2208,6 +2223,8 @@ Sensors::rc_poll()
 						 _parameters.rc_offboard_th, _parameters.rc_offboard_inv);
 			manual.kill_switch = get_rc_sw2pos_position(rc_channels_s::RC_CHANNELS_FUNCTION_KILLSWITCH,
 					     _parameters.rc_killswitch_th, _parameters.rc_killswitch_inv);
+			manual.arm_switch = get_rc_sw2pos_position(rc_channels_s::RC_CHANNELS_FUNCTION_ARMSWITCH,
+					    _parameters.rc_armswitch_th, _parameters.rc_armswitch_inv);
 			manual.transition_switch = get_rc_sw2pos_position(rc_channels_s::RC_CHANNELS_FUNCTION_TRANSITION,
 						   _parameters.rc_trans_th, _parameters.rc_trans_inv);
 			manual.gear_switch = get_rc_sw2pos_position(rc_channels_s::RC_CHANNELS_FUNCTION_GEAR,

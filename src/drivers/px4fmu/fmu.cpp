@@ -111,6 +111,9 @@
 #if !defined(BOARD_HAS_PWM)
 #  error "board_config.h needs to define BOARD_HAS_PWM"
 #endif
+
+const char *kSystemArmedRejectBind = "[FMU] system armed, bind request rejected";
+
 class PX4FMU : public device::CDev
 {
 public:
@@ -280,6 +283,7 @@ private:
 			hrt_abstime now, bool frame_drop, bool failsafe,
 			unsigned frame_drops, int rssi);
 	void dsm_bind_ioctl(int dsmMode);
+	void sr_bind(int srModel);
 	void set_rc_scan_state(RC_SCAN _rc_scan_state);
 	void rc_io_invert();
 	void rc_io_invert(bool invert);
@@ -1209,9 +1213,16 @@ PX4FMU::cycle()
 		struct vehicle_command_s cmd;
 		orb_copy(ORB_ID(vehicle_command), _vehicle_cmd_sub, &cmd);
 
-		// Check for a DSM pairing command
-		if (((unsigned int)cmd.command == vehicle_command_s::VEHICLE_CMD_START_RX_PAIR) && ((int)cmd.param1 == 0)) {
-			dsm_bind_ioctl((int)cmd.param2);
+		// Check for a pairing command
+		if ((unsigned int)cmd.command == vehicle_command_s::VEHICLE_CMD_START_RX_PAIR) {
+			if ((int)cmd.param1 == 0) {
+				// DSM pairing command
+				dsm_bind_ioctl((int)cmd.param2);
+
+			} else if ((int)cmd.param1 == 1) {
+				// SR/RX pairing command
+				sr_bind((int)cmd.param2);
+			}
 		}
 
 	}
@@ -2600,6 +2611,25 @@ PX4FMU::gpio_ioctl(struct file *filp, int cmd, unsigned long arg)
 }
 
 void
+PX4FMU::sr_bind(int /*srModel*/)
+{
+	if (!_armed.armed) {
+		// SR/RX unbind sequence
+		dsm_config(_rcs_fd);
+		RF_RADIO_POWER_CONTROL(false);
+		usleep(200000);
+		RF_RADIO_POWER_CONTROL(true);
+		usleep(900000);
+		char unbindcmd[] = {0x55, 0x55, 0x08, 0x04, 0x00, 0x00, 0x42, 0x49, 0x4E, 0x44, 0xB0};
+		int res = ::write(_rcs_fd, &unbindcmd[0], sizeof(unbindcmd));
+		PX4_INFO("WROTE UNBIND COMMAND: %d (fd: %d)", res, _rcs_fd);
+
+	} else {
+		warnx(kSystemArmedRejectBind);
+	}
+}
+
+void
 PX4FMU::dsm_bind_ioctl(int dsmMode)
 {
 	if (!_armed.armed) {
@@ -2615,7 +2645,7 @@ PX4FMU::dsm_bind_ioctl(int dsmMode)
 
 	} else {
 //        mavlink_log_info(&_mavlink_log_pub, "[FMU] system armed, bind request rejected");
-		warnx("[FMU] system armed, bind request rejected");
+		warnx(kSystemArmedRejectBind);
 	}
 }
 
