@@ -9,7 +9,6 @@
 # @output AUX3 feed-through of RC AUX3 channel
 #
 # @maintainer Lorenz Meier <lorenz@px4.io>
-# @Yuneec kyChu <ky.Chu@helang.com>
 #
 
 sh /etc/init.d/rc.mc_defaults

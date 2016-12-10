@@ -662,7 +662,6 @@ int Mavlink::mavlink_open_uart(int baud, const char *uart_name)
 #ifndef B1500000
 #define B1500000 1500000
 #endif
-#endif /* __PX4_NUTTX */
 
 	/* process baud rate */
 	int speed;
