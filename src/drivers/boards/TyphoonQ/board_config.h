@@ -63,9 +63,9 @@ __BEGIN_DECLS
 /* PX4FMU GPIOs ***********************************************************************************/
 /* LEDs */
 /*                              Port Connector FMUv5 Delta */
-#define GPIO_LED1              /* PB1 TIM3_CH4             */ (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|GPIO_OUTPUT_SET|GPIO_PORTB|GPIO_PIN1)
-#define GPIO_LED2              /* PC6 TIM3_CH1             */ (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|GPIO_OUTPUT_SET|GPIO_PORTC|GPIO_PIN6)
-#define GPIO_LED3              /* PC7 TIM3_CH2             */ (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|GPIO_OUTPUT_SET|GPIO_PORTC|GPIO_PIN7)
+#define GPIO_LED1              /* PD13             */ (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|GPIO_OUTPUT_SET|GPIO_PORTD|GPIO_PIN13)
+#define GPIO_LED2              /* PD10             */ (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTD|GPIO_PIN10)
+#define GPIO_LED3              /* PG2              */ (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTG|GPIO_PIN2)
 
 #define GPIO_LED_RED 	GPIO_LED1
 #define GPIO_LED_GREEN 	GPIO_LED2
@@ -158,22 +158,22 @@ __BEGIN_DECLS
  * These are the channel numbers of the ADCs of the microcontroller that
  * can be used by the Px4 Firmware in the adc driver
  */
-#define ADC_CHANNELS (1 << 0) | (1 << 10) | (1 << 11)
+#define ADC_CHANNELS (1 << 8)
 
 // ADC defines to be used in sensors.cpp to read from a particular channel
-#define ADC_BATTERY_VOLTAGE_CHANNEL		0
+#define ADC_BATTERY_VOLTAGE_CHANNEL		8
 #define ADC_BATTERY_CURRENT_CHANNEL ((uint8_t)(-1))
-#define ADC_5V_RAIL_SENSE               10
-#define ADC_3V3_RAIL_SENSE              11
+#define ADC_5V_RAIL_SENSE           ((uint8_t)(-1))
+#define ADC_3V3_RAIL_SENSE          ((uint8_t)(-1))
 
 /* CAN Silence
  *
  * Silent mode control input to TJA1057
  * Active HI is Silent
  */
-#define GPIO_CAN1_SILENCE  /* PH2  U1 CAN_S1 */(GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTH|GPIO_PIN2)
-#define GPIO_CAN2_SILENCE  /* PH3  U3 CAN_S1 */(GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTH|GPIO_PIN3)
-#define GPIO_CAN3_SILENCE  /* PG10 U5 CAN_S1 */(GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTG|GPIO_PIN10)
+//#define GPIO_CAN1_SILENCE  /* PH2  U1 CAN_S1 */(GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTH|GPIO_PIN2)
+//#define GPIO_CAN2_SILENCE  /* PH3  U3 CAN_S1 */(GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTH|GPIO_PIN3)
+//#define GPIO_CAN3_SILENCE  /* PG10 U5 CAN_S1 */(GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTG|GPIO_PIN10)
 
 
 /* PWM
@@ -246,7 +246,7 @@ __BEGIN_DECLS
 #define PWMIN_TIMER_CHANNEL     /* PH6 JP1-9  */ 1
 #define GPIO_PWM_IN             /* PH6 JP1-9  */ GPIO_TIM12_CH1IN_2
 
-#define RC_SERIAL_PORT      "/dev/ttyS5"
+#define RC_SERIAL_PORT      "/dev/ttyS6"
 #define INVERT_RC_INPUT(_s)     while(0)
 
 

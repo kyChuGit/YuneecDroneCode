@@ -5,13 +5,14 @@
 #  NOTE: COMMENT LINES ARE REMOVED BEFORE STORED IN ROMFS.
 #
 # Serial map:
-# /dev/ttyS0: GPS   (USART1)
-# /dev/ttyS1: J11   (USART2)
-# /dev/ttyS2: J7    (USART3)
-# /dev/ttyS3: GB    (UART4)
-# /dev/ttyS4: OFS   (USART6)
-# /dev/ttyS5: RF    (UART7)
-# /dev/ttyS6: DEBUG (UART8)
+# /dev/ttyS0: GPS     (USART1)
+# /dev/ttyS1: Radar   (USART2)
+# /dev/ttyS2: Battery (USART3)
+# /dev/ttyS3: GB      (UART4)
+# /dev/ttyS4: ESC     (UART5)
+# /dev/ttyS5: OFS     (USART6)
+# /dev/ttyS6: RF      (UART7)
+# /dev/ttyS7: DEBUG   (UART8)
 
 #
 # Mount the procfs.

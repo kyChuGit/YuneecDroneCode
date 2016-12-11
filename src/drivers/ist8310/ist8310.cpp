@@ -1478,7 +1478,7 @@ struct ist8310_bus_option {
 	uint8_t busnum;
 	IST8310 *dev;
 } bus_options[] = {
-	{ IST8310_BUS_I2C_EXTERNAL, "/dev/ist8310_ext", PX4_I2C_BUS_EXPANSION, NULL },
+	{ IST8310_BUS_I2C_EXTERNAL, "/dev/ist8310_ext", PX4_I2C_BUS_EXPANSION1, NULL },
 #ifdef PX4_I2C_BUS_ONBOARD
 	{ IST8310_BUS_I2C_INTERNAL, "/dev/ist8310_int", PX4_I2C_BUS_ONBOARD, NULL },
 #endif

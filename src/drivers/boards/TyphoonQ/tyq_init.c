@@ -174,9 +174,9 @@ stm32_boardinitialize(void)
 	stm32_configgpio(GPIO_GPIO3_OUTPUT);
 
 	/* Configure the CAN Silent Controle pins and keep them low */
-	stm32_configgpio(GPIO_CAN1_SILENCE);
-	stm32_configgpio(GPIO_CAN2_SILENCE);
-	stm32_configgpio(GPIO_CAN3_SILENCE);
+//	stm32_configgpio(GPIO_CAN1_SILENCE);
+//	stm32_configgpio(GPIO_CAN2_SILENCE);
+//	stm32_configgpio(GPIO_CAN3_SILENCE);
 
 	/* configure SPI interfaces */
 
