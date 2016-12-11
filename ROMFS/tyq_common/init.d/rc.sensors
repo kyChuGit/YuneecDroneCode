@@ -12,7 +12,7 @@ if adc start
 then
 fi
 
-if ist8310 start
+if ist8310 -C -R 6 start
 then
 fi
 
@@ -20,7 +20,7 @@ if ms5611 -s -T 5607 start
 then
 fi
 
-if mpu6500 start
+if mpu6500 -R 6 start
 then
 fi
 
