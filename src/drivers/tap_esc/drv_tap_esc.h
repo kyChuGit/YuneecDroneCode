@@ -56,6 +56,9 @@
 		0xB8, 0x5F, 0x91, 0x76\
 	}
 
+#define TAP_ESC_ModeOpenLoop 0
+#define TAP_ESC_ModeClosedLoop 1
+
 #define TAP_ESC_MAX_PACKET_LEN 20
 #define TAP_ESC_MAX_MOTOR_NUM 8
 
@@ -76,16 +79,16 @@
  */
 
 // Circular from back right in CCW direction
-#define ESC_POS {0, 1, 4, 3, 2, 5, 7, 8}
+#define ESC_POS {0, 1, 2, 3, 4, 5, 6, 7}
 // 0 is CW, 1 is CCW
-#define ESC_DIR {0, 1, 0, 1, 0, 1, 0, 1}
+#define ESC_DIR {0, 0, 1, 1, 0, 1, 0, 1}
 
 #define RPMMAX 1900
 #define RPMMIN 1200
 #define RPMSTOPPED (RPMMIN - 10)
 
 
-#define MAX_BOOT_TIME_MS		 (550) // Minimum time to wait after Power on before sending commands
+#define MAX_BOOT_TIME_MS		 (500) // Minimum time to wait after Power on before sending commands
 
 #pragma pack(push,1)
 

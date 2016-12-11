@@ -180,14 +180,6 @@ then
 	# pan mode
 	param set RC_MAP_AUX4 10
 
-	# gimbal driver configuration
-	param set MNT_MODE_IN 4
-	param set MNT_MODE_OUT 2
-	param set MNT_MAN_CONTROL 1
-	param set MNT_MAN_ROLL 0
-	param set MNT_MAN_PITCH 2
-	param set MNT_MAN_YAW 1
-
 	# ekf2
 	param set EKF2_MIN_OBS_DT 50
 	param set EKF2_MAG_DELAY 0

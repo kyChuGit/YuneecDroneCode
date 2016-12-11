@@ -1217,7 +1217,8 @@ PX4FMU::cycle()
 		if ((unsigned int)cmd.command == vehicle_command_s::VEHICLE_CMD_START_RX_PAIR) {
 			if ((int)cmd.param1 == 0) {
 				// DSM pairing command
-				dsm_bind_ioctl((int)cmd.param2);
+				//dsm_bind_ioctl((int)cmd.param2);
+				sr_bind((int)cmd.param2);
 
 			} else if ((int)cmd.param1 == 1) {
 				// SR/RX pairing command
