@@ -213,7 +213,7 @@ private:
 		SensorData()
 			: last_best_vote(0),
 			  subscription_count(0),
-			  voter(1),
+			  voter(SENSOR_COUNT_MAX),
 			  last_failover_count(0)
 		{
 			for (unsigned i = 0; i < SENSOR_COUNT_MAX; i++) {
@@ -1076,7 +1076,11 @@ Sensors::parameters_update()
 		_parameters.battery_v_div = 5.7013919372f;
 #elif defined (CONFIG_ARCH_BOARD_SITL)
 		_parameters.battery_v_div = 10.177939394f;
+#elif defined (CONFIG_ARCH_BOARD_PX4FMU_V5)
+		_parameters.battery_v_div = 9.0f;
 #elif defined (CONFIG_ARCH_BOARD_TAP_V1)
+		_parameters.battery_v_div = 9.0f;
+#elif defined (CONFIG_ARCH_BOARD_BAT12_V1)
 		_parameters.battery_v_div = 9.0f;
 #else
 		/* ensure a missing default trips a low voltage lockdown */
