@@ -95,6 +95,7 @@ int gpio_led_main(int argc, char *argv[])
 
 #if defined(CONFIG_ARCH_BOARD_AUAV_X21)          || \
 	defined(CONFIG_ARCH_BOARD_BAT12_V1)          || \
+	defined(CONFIG_ARCH_BOARD_BREEZEPRO)         || \
 	defined(CONFIG_ARCH_BOARD_PX4FMU_V2)         || \
 	defined(CONFIG_ARCH_BOARD_PX4FMU_V4)         || \
 	defined(CONFIG_ARCH_BOARD_PX4FMU_V4PRO)      || \
@@ -124,6 +125,7 @@ int gpio_led_main(int argc, char *argv[])
 #endif
 #if defined(CONFIG_ARCH_BOARD_AUAV_X21)          || \
 	defined(CONFIG_ARCH_BOARD_BAT12_V1)          || \
+	defined(CONFIG_ARCH_BOARD_BREEZEPRO)          || \
 	defined(CONFIG_ARCH_BOARD_PX4FMU_V2)         || \
 	defined(CONFIG_ARCH_BOARD_PX4FMU_V4)         || \
 	defined(CONFIG_ARCH_BOARD_PX4FMU_V4PRO)      || \
@@ -174,6 +176,7 @@ int gpio_led_main(int argc, char *argv[])
 #endif
 #if defined(CONFIG_ARCH_BOARD_AUAV_X21)          || \
 	defined(CONFIG_ARCH_BOARD_BAT12_V1)          || \
+	defined(CONFIG_ARCH_BOARD_BREEZEPRO)         || \
 	defined(CONFIG_ARCH_BOARD_PX4FMU_V2)         || \
 	defined(CONFIG_ARCH_BOARD_PX4FMU_V4)         || \
 	defined(CONFIG_ARCH_BOARD_PX4FMU_V4PRO)      || \

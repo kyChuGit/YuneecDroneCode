@@ -712,23 +712,23 @@ TAP_ESC::cycle()
 
 		// We need to remap from the system default to what PX4's normal
 		// scheme is
-//		if (num_outputs == 6) {
-//			motor_out[0] = _outputs.output[3];
-//			motor_out[1] = _outputs.output[0];
-//			motor_out[2] = _outputs.output[4];
-//			motor_out[3] = _outputs.output[2];
-//			motor_out[4] = _outputs.output[1];
-//			motor_out[5] = _outputs.output[5];
-//			motor_out[6] = RPMSTOPPED;
-//			motor_out[7] = RPMSTOPPED;
-//
-//		} else {
+		if (num_outputs == 4) {
+			motor_out[0] = _outputs.output[2];
+			motor_out[1] = _outputs.output[1];
+			motor_out[2] = _outputs.output[3];
+			motor_out[3] = _outputs.output[0];
+			motor_out[4] = RPMSTOPPED;
+			motor_out[5] = RPMSTOPPED;
+			motor_out[6] = RPMSTOPPED;
+			motor_out[7] = RPMSTOPPED;
+
+		} else {
 
 			// Use the system defaults
 			for (int i = 0; i < esc_count; ++i) {
 				motor_out[i] = _outputs.output[i];
 			}
-//		}
+		}
 		send_esc_outputs(motor_out, esc_count);
 		read_data_from_uart();
 
