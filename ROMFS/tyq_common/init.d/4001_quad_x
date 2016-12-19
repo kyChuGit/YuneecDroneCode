@@ -22,24 +22,24 @@ then
 	#
 
 	# pitch angle & rate setting
-	param set MC_PITCHRATE_P 0.13
+	param set MC_PITCHRATE_P 0.1
 	param set MC_PITCHRATE_I 0.000
-	param set MC_PITCHRATE_D 0.0032
+	param set MC_PITCHRATE_D 0.001
 	param set MC_PITCHRATE_MAX 360.0
-	param set MC_PITCH_P 4.5
+	param set MC_PITCH_P 3.2
 
 	# roll angle & rate setting
-	param set MC_ROLLRATE_P 0.13
+	param set MC_ROLLRATE_P 0.1
 	param set MC_ROLLRATE_I 0.000
-	param set MC_ROLLRATE_D 0.0032
+	param set MC_ROLLRATE_D 0.001
 	param set MC_ROLLRATE_MAX 360.0
-	param set MC_ROLL_P 4.5
+	param set MC_ROLL_P 3.2
 
 	# yaw angle & rate setting
-	param set MC_YAWRATE_P 0.12
+	param set MC_YAWRATE_P 0.13
 	param set MC_YAWRATE_I 0.05
 	param set MC_YAWRATE_MAX 120.0
-	param set MC_YAW_P 3.0
+	param set MC_YAW_P 3.2
 
 	#
 	# Throttle max/min setting
@@ -55,7 +55,7 @@ then
 	#
 	# Battery setting
 	#
-	param set BAT_N_CELLS 3
+	param set BAT_N_CELLS 4
 	param set BAT_V_CHARGED 4.2
 
 	#
