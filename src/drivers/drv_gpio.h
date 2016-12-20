@@ -95,7 +95,7 @@
 
 #if defined(CONFIG_ARCH_BOARD_BREEZEPRO)
 /*
- * BAT12 GPIO numbers.
+ * BreezePro GPIO numbers.
  *
  * There are no alternate functions on this board.
  */
