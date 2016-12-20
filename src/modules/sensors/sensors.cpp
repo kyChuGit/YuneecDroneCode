@@ -1082,6 +1082,8 @@ Sensors::parameters_update()
 		_parameters.battery_v_div = 9.0f;
 #elif defined (CONFIG_ARCH_BOARD_BAT12_V1)
 		_parameters.battery_v_div = 9.0f;
+#elif defined (CONFIG_ARCH_BOARD_TYPHOONQ)
+		_parameters.battery_v_div = 9.0f;
 #else
 		/* ensure a missing default trips a low voltage lockdown */
 		_parameters.battery_v_div = 0.0f;
