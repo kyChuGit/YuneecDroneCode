@@ -18,6 +18,7 @@ set(config_module_list
 	drivers/px4fmu
 	drivers/boards/bat12-v1
 	drivers/rgbled_pwm
+	drivers/icm20602
 	drivers/mpu6000
 	drivers/mpu6500
 	drivers/mpu9250

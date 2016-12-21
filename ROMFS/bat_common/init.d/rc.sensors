@@ -21,9 +21,13 @@ if ms5611 -s -T 5607 start
 then
 fi
 
-if mpu6500 start
+if icm20602 start
 then
 fi
+
+#if mpu6500 start
+#then
+#fi
 
 if meas_airspeed start
 then
