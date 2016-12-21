@@ -16,9 +16,10 @@ set(config_module_list
 	drivers/px4fmu
 	drivers/boards/BreezePro
 	drivers/rgbled_pwm
-	drivers/mpu6000
+	drivers/icm20602
+#	drivers/mpu6000
 	drivers/mpu6500
-	drivers/mpu9250
+#	drivers/mpu9250
 	drivers/hmc5883
 	drivers/ist8310
 	drivers/ms5611
