@@ -202,8 +202,8 @@ load_mon start
 # later move this to a proper place
 param set MAV_PROTO_VER 2
 # run mavlink on the Gimbal port
-mavlink start -r 2000 -d /dev/ttyS3 -m config -b 38400
-
+#mavlink start -r 2000 -d /dev/ttyS3 -m config -b 38400
+mavlink start -r 4000 -d /dev/ttyS2 -m config -x -b 57600
 
 #
 # Start primary output
@@ -328,7 +328,8 @@ then
 	# Try to get an USB console
 	nshterm /dev/ttyACM0 &
 else
-	mavlink start -r 800000 -d /dev/ttyACM0 -m config -x
+#	mavlink start -r 800000 -d /dev/ttyACM0 -m config -x
+	nshterm /dev/ttyACM0 &
 fi
 
 #
