@@ -35,7 +35,7 @@
 /**
  * @file board_config.h
  *
- * bat12-v1 internal definitions
+ * BreezePro internal definitions
  */
 
 #pragma once
@@ -60,7 +60,7 @@ __BEGIN_DECLS
  ****************************************************************************************************/
 /* Configuration ************************************************************************************/
 
-/* PX4FMU GPIOs ***********************************************************************************/
+/* BreezePro GPIOs ***********************************************************************************/
 /* LEDs */
 /*                              Port Connector FMUv5 Delta */
 #define GPIO_LED1              /* PB1 TIM3_CH4             */ (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|GPIO_OUTPUT_SET|GPIO_PORTB|GPIO_PIN1)
@@ -220,6 +220,7 @@ __BEGIN_DECLS
 #define GPIO_GPIO3_OUTPUT       /* PE14 JP1-11 T1C4  FMU1  PWM_4 */ _MK_GPIO_OUTPUT(GPIO_TIM1_CH4OUT)
 
 #define BOARD_HAS_LED_PWM
+#define BOARD_LED_PWM_DRIVE_ACTIVE_LOW
 
 #define GPIO_TIM5_CH1OUT        /* PH10 JP2-4  T5C1  MAIN_LED_RED   */ GPIO_TIM5_CH1OUT_2
 #define GPIO_TIM5_CH2OUT        /* PH11 JP2-5  T5C2  MAIN_LED_GREEN */ GPIO_TIM5_CH2OUT_2
@@ -247,7 +248,7 @@ __BEGIN_DECLS
 #define PWMIN_TIMER_CHANNEL     /* PH6 JP1-9  */ 1
 #define GPIO_PWM_IN             /* PH6 JP1-9  */ GPIO_TIM12_CH1IN_2
 
-#define RC_SERIAL_PORT      "/dev/ttyS2"
+#define RC_SERIAL_PORT      "/dev/ttyS6"
 #define INVERT_RC_INPUT(_s)     while(0)
 
 

@@ -98,37 +98,42 @@ __EXPORT void led_init(void)
 	}
 }
 
-static void phy_set_led(int led, bool state)
-{
-	/* Drive Low to switch on */
-
-	if (g_ledmap[led]) {
-		stm32_gpiowrite(g_ledmap[led], !state);
-	}
-}
-
-static bool phy_get_led(int led)
-{
-
-	if (g_ledmap[led]) {
-		return stm32_gpioread(g_ledmap[led]);
-	} return false;
-}
+//static void phy_set_led(int led, bool state)
+//{
+//	/* Drive Low to switch on */
+//
+//	if (g_ledmap[led]) {
+//		stm32_gpiowrite(g_ledmap[led], !state);
+//	}
+//}
+//
+//static bool phy_get_led(int led)
+//{
+//
+//	if (g_ledmap[led]) {
+//		return stm32_gpioread(g_ledmap[led]);
+//	} return false;
+//}
 
 __EXPORT void led_on(int led)
 {
-	phy_set_led(xlat(led), true);
+//	phy_set_led(xlat(led), true);
+	if (g_ledmap[led])
+		stm32_gpiowrite(g_ledmap[led], false);
 }
 
 __EXPORT void led_off(int led)
 {
-	phy_set_led(xlat(led), false);
+//	phy_set_led(xlat(led), false);
+	if (g_ledmap[led])
+		stm32_gpiowrite(g_ledmap[led], true);
 }
 
 __EXPORT void led_toggle(int led)
 {
-
-	phy_set_led(xlat(led), !phy_get_led(xlat(led)));
+	if (g_ledmap[led])
+		stm32_gpiowrite(g_ledmap[led], !stm32_gpioread(g_ledmap[led]));
+//	phy_set_led(xlat(led), !phy_get_led(xlat(led)));
 }
 
 #ifdef CONFIG_ARCH_LEDS
