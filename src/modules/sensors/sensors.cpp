@@ -1083,7 +1083,7 @@ Sensors::parameters_update()
 #elif defined (CONFIG_ARCH_BOARD_BAT12_V1)
 		_parameters.battery_v_div = 9.0f;
 #elif defined (CONFIG_ARCH_BOARD_BREEZEPRO)
-		_parameters.battery_v_div = 9.0f;
+		_parameters.battery_v_div = 5.70588235f;
 #else
 		/* ensure a missing default trips a low voltage lockdown */
 		_parameters.battery_v_div = 0.0f;

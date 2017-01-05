@@ -714,9 +714,9 @@ TAP_ESC::cycle()
 		// scheme is
 		if (num_outputs == 4) {
 			motor_out[0] = _outputs.output[2];
-			motor_out[1] = _outputs.output[1];
+			motor_out[1] = _outputs.output[0];
 			motor_out[2] = _outputs.output[3];
-			motor_out[3] = _outputs.output[0];
+			motor_out[3] = _outputs.output[1];
 			motor_out[4] = RPMSTOPPED;
 			motor_out[5] = RPMSTOPPED;
 			motor_out[6] = RPMSTOPPED;

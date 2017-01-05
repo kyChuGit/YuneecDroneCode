@@ -12,7 +12,7 @@ if adc start
 then
 fi
 
-if ist8310 -C start
+if ist8310 -C -R 4 start
 then
 fi
 
