@@ -664,7 +664,7 @@ TAP_ESC::cycle()
 				    _outputs.output[i] >= -1.0f &&
 				    _outputs.output[i] <= 1.0f) {
 					/* scale for PWM output 1000 - 2000us */
-					_outputs.output[i] = 1600 + (350 * _outputs.output[i]);
+					_outputs.output[i] = 1550 + (350 * _outputs.output[i]);
 
 				} else {
 					/*
