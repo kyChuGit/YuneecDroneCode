@@ -214,6 +214,8 @@ fi
 #
 sh /etc/init.d/rc.sensors
 
+#esc_tone start -d /dev/ttyS4 -p 30
+
 commander start
 
 #

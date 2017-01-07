@@ -52,6 +52,7 @@
 
 #include <drivers/drv_hrt.h>
 #include <drivers/drv_mixer.h>
+#include <drivers/drv_tone_alarm.h>
 #include <systemlib/mixer/mixer.h>
 #include <systemlib/param/param.h>
 #include <systemlib/pwm_limit/pwm_limit.h>
@@ -70,7 +71,6 @@
  * This driver connects to TAP ESCs via serial.
  */
 
-static int _uart_fd = -1; //todo:refactor in to class
 class TAP_ESC : public device::CDev
 {
 public:
@@ -87,15 +87,13 @@ public:
 		MODE_5CAP,
 		MODE_6CAP,
 	};
-	TAP_ESC(int channels_count);
+	TAP_ESC(const char *_device, int channels_count);
 	virtual ~TAP_ESC();
 	virtual int	init();
 	virtual int	ioctl(file *filp, int cmd, unsigned long arg);
 	void cycle();
-protected:
-//	void select_responder(uint8_t sel);
 private:
-
+	int _uart_fd; //todo:refactor in to class
 	static const uint8_t crcTable[256];
 	static const uint8_t device_mux_map[TAP_ESC_MAX_MOTOR_NUM];
 	static const uint8_t device_dir_map[TAP_ESC_MAX_MOTOR_NUM];
@@ -138,9 +136,10 @@ private:
 	void		work_start();
 	void		work_stop();
 	void send_esc_outputs(const float *pwm, const unsigned num_pwm);
+	void send_esc_tone(uint16_t freq, uint16_t len, uint8_t pwr);
 	uint8_t crc8_esc(uint8_t *p, uint8_t len);
 	uint8_t crc_packet(EscPacket &p);
-	int send_packet(EscPacket &p);//, int responder);
+	int send_packet(EscPacket &p);
 	void read_data_from_uart();
 	bool parse_tap_esc_feedback(ESC_UART_BUF *serial_buf, EscPacket *packetdata);
 	static int control_callback(uintptr_t handle,
@@ -155,15 +154,11 @@ const uint8_t TAP_ESC::device_dir_map[TAP_ESC_MAX_MOTOR_NUM] = ESC_DIR;
 
 actuator_armed_s TAP_ESC::_armed = {};
 
-namespace
-{
-TAP_ESC	*tap_esc = nullptr;
-}
-
 # define TAP_ESC_DEVICE_PATH	"/dev/tap_esc"
 
-TAP_ESC::TAP_ESC(int channels_count):
+TAP_ESC::TAP_ESC(const char *_device, int channels_count):
 	CDev("tap_esc", TAP_ESC_DEVICE_PATH),
+	_uart_fd(-1),
 	_is_armed(false),
 	_poll_fds_num(0),
 	_mode(MODE_4PWM), //FIXME: what is this mode used for???
@@ -198,6 +193,9 @@ TAP_ESC::TAP_ESC(int channels_count):
 	}
 
 	_outputs.noutputs = 0;
+
+	_uart_fd = ::open(_device, O_RDWR | O_NONBLOCK | O_NOCTTY);
+	PX4_WARN("esc fd: %d", _uart_fd);
 }
 
 TAP_ESC::~TAP_ESC()
@@ -215,11 +213,6 @@ TAP_ESC::~TAP_ESC()
 
 		} while (_initialized && i > 0);
 	}
-
-	// clean up the alternate device node
-	//unregister_class_devname(PWM_OUTPUT_BASE_DEVICE_PATH, _class_instance);
-
-	tap_esc = nullptr;
 }
 
 int
@@ -259,7 +252,7 @@ TAP_ESC::init()
 
 	int reConfig = 5;
 	while(reConfig --) {
-		ret = send_packet(packet);//, 0);
+		ret = send_packet(packet);
 		usleep(10000);
 	}
 
@@ -280,7 +273,7 @@ TAP_ESC::init()
 		info_req.channelID = cid;
 		info_req.requestInfoType = REQEST_INFO_BASIC;
 
-		ret = send_packet(packet_info);//, cid);
+		ret = send_packet(packet_info);
 
 		if (ret < 0) {
 			return ret;
@@ -329,7 +322,7 @@ TAP_ESC::init()
 
 	while (unlock_times--) {
 
-		send_packet(unlock_packet);//, -1);
+		send_packet(unlock_packet);
 
 		/* Min Packet to Packet time is 1 Ms so use 2 */
 
@@ -340,27 +333,19 @@ TAP_ESC::init()
 
 	ret = CDev::init();
 
+	if(ret != OK)
+	{
+		DEVICE_DEBUG("esc init failed");
+		return ret;
+	}
+
 	return ret;
 }
 
-int TAP_ESC::send_packet(EscPacket &packet)//, int responder)
+int TAP_ESC::send_packet(EscPacket &packet)
 {
-//	if (responder >= 0) {
-//
-//		if (responder > _channels_count) {
-//			return -EINVAL;
-//		}
-//
-//		select_responder(responder);
-//	}
-
 	int packet_len = crc_packet(packet);
 	int ret = ::write(_uart_fd, &packet.head, packet_len);
-
-	if (ret != packet_len) {
-		PX4_WARN("TX ERROR: ret: %d, errno: %d", ret, errno);
-	}
-
 	return ret;
 }
 
@@ -409,15 +394,6 @@ uint8_t TAP_ESC::crc_packet(EscPacket &p)
 	p.d.bytes[p.len] = crc8_esc(&p.len, p.len + 2);
 	return p.len + offsetof(EscPacket, d) + 1;
 }
-//void TAP_ESC::select_responder(uint8_t sel)
-//{
-//#if defined(GPIO_S0)
-//	px4_arch_gpiowrite(GPIO_S0, sel & 1);
-//	px4_arch_gpiowrite(GPIO_S1, sel & 2);
-//	px4_arch_gpiowrite(GPIO_S2, sel & 4);
-//#endif
-//}
-
 
 void TAP_ESC:: send_esc_outputs(const float *pwm, const unsigned num_pwm)
 {
@@ -448,7 +424,7 @@ void TAP_ESC:: send_esc_outputs(const float *pwm, const unsigned num_pwm)
 		packet.d.reqRun.rpm_flags[i] = rpm[i];
 	}
 
-	int ret = send_packet(packet);//, which_to_respone);
+	int ret = send_packet(packet);
 
 	if (++which_to_respone == _channels_count) {
 		which_to_respone = 0;
@@ -456,6 +432,25 @@ void TAP_ESC:: send_esc_outputs(const float *pwm, const unsigned num_pwm)
 
 	if (ret < 1) {
 		PX4_WARN("TX ERROR: ret: %d, errno: %d", ret, errno);
+	}
+}
+
+void TAP_ESC::send_esc_tone(uint16_t freq, uint16_t len, uint8_t pwr)
+{
+	EscPacket packet = {0xfe, 5, ESCBUS_MSG_ID_TUNE};
+	if(!_is_armed)
+	{
+		packet.d.bytes[0] = freq & 0x00FF;
+		packet.d.bytes[1] = freq >> 8;
+		packet.d.bytes[2] = len & 0x00FF;
+		packet.d.bytes[3] = len >> 8;
+		packet.d.bytes[4] = pwr;
+
+		int ret = send_packet(packet);
+
+		if (ret < 1) {
+			PX4_WARN("TUNE ERR: ret: %d, errno: %d, fd: %d", ret, errno, _uart_fd);
+		}
 	}
 }
 
@@ -569,7 +564,6 @@ bool TAP_ESC:: parse_tap_esc_feedback(ESC_UART_BUF *serial_buf, EscPacket *packe
 void
 TAP_ESC::cycle()
 {
-
 	if (!_initialized) {
 		_current_update_rate = 0;
 		/* advertise the mixed control outputs, insist on the first group output */
@@ -707,57 +701,61 @@ TAP_ESC::cycle()
 
 		}
 
-		const unsigned esc_count = num_outputs;
-		float motor_out[TAP_ESC_MAX_MOTOR_NUM];
+		if (_is_armed && _mixers != nullptr) //set esc output in the case of armed.
+		{
+			const unsigned esc_count = num_outputs;
+			float motor_out[TAP_ESC_MAX_MOTOR_NUM];
 
-		// We need to remap from the system default to what PX4's normal
-		// scheme is
-		if (num_outputs == 4) {
-			motor_out[0] = _outputs.output[2];
-			motor_out[1] = _outputs.output[0];
-			motor_out[2] = _outputs.output[3];
-			motor_out[3] = _outputs.output[1];
-			motor_out[4] = RPMSTOPPED;
-			motor_out[5] = RPMSTOPPED;
-			motor_out[6] = RPMSTOPPED;
-			motor_out[7] = RPMSTOPPED;
+			// We need to remap from the system default to what PX4's normal
+			// scheme is
+			if (num_outputs == 4) {
+				motor_out[0] = _outputs.output[2];
+				motor_out[1] = _outputs.output[0];
+				motor_out[2] = _outputs.output[3];
+				motor_out[3] = _outputs.output[1];
+				motor_out[4] = RPMSTOPPED;
+				motor_out[5] = RPMSTOPPED;
+				motor_out[6] = RPMSTOPPED;
+				motor_out[7] = RPMSTOPPED;
 
-		} else {
+			} else {
 
-			// Use the system defaults
-			for (int i = 0; i < esc_count; ++i) {
-				motor_out[i] = _outputs.output[i];
-			}
-		}
-		send_esc_outputs(motor_out, esc_count);
-		read_data_from_uart();
-
-		if (parse_tap_esc_feedback(&uartbuf, &_packet) == true) {
-			if (_packet.msg_id == ESCBUS_MSG_ID_RUN_INFO) {
-				RunInfoRepsonse &feed_back_data = _packet.d.rspRunInfo;
-
-				if (feed_back_data.channelID < esc_status_s::CONNECTED_ESC_MAX) {
-					_esc_feedback.esc[feed_back_data.channelID].esc_rpm = feed_back_data.speed;
-//					_esc_feedback.esc[feed_back_data.channelID].esc_voltage = feed_back_data.voltage;
-					_esc_feedback.esc[feed_back_data.channelID].esc_state = feed_back_data.ESCStatus;
-					_esc_feedback.esc[feed_back_data.channelID].esc_vendor = esc_status_s::ESC_VENDOR_TAP;
-					// printf("vol is %d\n",feed_back_data.voltage );
-					// printf("speed is %d\n",feed_back_data.speed );
-
-					_esc_feedback.esc_connectiontype = esc_status_s::ESC_CONNECTION_TYPE_SERIAL;
-					_esc_feedback.counter++;
-					_esc_feedback.esc_count = esc_count;
-
-					_esc_feedback.timestamp = hrt_absolute_time();
-
-					orb_publish(ORB_ID(esc_status), _esc_feedback_pub, &_esc_feedback);
+				// Use the system defaults
+				for (int i = 0; i < esc_count; ++i) {
+					motor_out[i] = _outputs.output[i];
 				}
 			}
+			send_esc_outputs(motor_out, esc_count);
+			read_data_from_uart();
+
+			if (parse_tap_esc_feedback(&uartbuf, &_packet) == true) {
+				if (_packet.msg_id == ESCBUS_MSG_ID_RUN_INFO) {
+					RunInfoRepsonse &feed_back_data = _packet.d.rspRunInfo;
+
+					if (feed_back_data.channelID < esc_status_s::CONNECTED_ESC_MAX) {
+						_esc_feedback.esc[feed_back_data.channelID].esc_rpm = feed_back_data.speed;
+	//					_esc_feedback.esc[feed_back_data.channelID].esc_voltage = feed_back_data.voltage;
+						_esc_feedback.esc[feed_back_data.channelID].esc_state = feed_back_data.ESCStatus;
+						_esc_feedback.esc[feed_back_data.channelID].esc_vendor = esc_status_s::ESC_VENDOR_TAP;
+
+						_esc_feedback.esc_connectiontype = esc_status_s::ESC_CONNECTION_TYPE_SERIAL;
+						_esc_feedback.counter++;
+						_esc_feedback.esc_count = esc_count;
+
+						_esc_feedback.timestamp = hrt_absolute_time();
+
+						orb_publish(ORB_ID(esc_status), _esc_feedback_pub, &_esc_feedback);
+					}
+				}
+			}
+
+			/* and publish for anyone that cares to see */
+			orb_publish(ORB_ID(actuator_outputs), _outputs_pub, &_outputs);
 		}
-
-		/* and publish for anyone that cares to see */
-		orb_publish(ORB_ID(actuator_outputs), _outputs_pub, &_outputs);
-
+		else
+		{
+			// send esc tune cmd in spare time.
+		}
 	}
 
 	bool updated;
@@ -778,8 +776,6 @@ TAP_ESC::cycle()
 		_is_armed = _armed.armed;
 
 	}
-
-
 }
 
 void TAP_ESC::work_stop()
@@ -896,20 +892,19 @@ TAP_ESC::ioctl(file *filp, int cmd, unsigned long arg)
 		break;
 	}
 
-
-
 	return ret;
 }
 
 namespace tap_esc_drv
 {
-
+TAP_ESC	*tap_esc = nullptr;
 
 volatile bool _task_should_exit = false; // flag indicating if tap_esc task should exit
 static char _device[32] = {};
 static bool _is_running = false;         // flag indicating if tap_esc app is running
 static px4_task_t _task_handle = -1;     // handle to the task main thread
 static int _supported_channel_count = 0;
+static int esc_uart_fd = -1;
 
 static bool _flow_control_enabled = false;
 
@@ -924,23 +919,17 @@ void task_main_trampoline(int argc, char *argv[]);
 
 void task_main(int argc, char *argv[]);
 
-int initialise_uart();
-
-int deinitialize_uart();
-
-int enable_flow_control(bool enabled);
+int initialise_uart(bool flow_enabled);
 
 int tap_esc_start(void)
 {
 	int ret = OK;
 
 	if (tap_esc == nullptr) {
-
-		tap_esc = new TAP_ESC(_supported_channel_count);
-
+		tap_esc = new TAP_ESC(_device, _supported_channel_count);
 		if (tap_esc == nullptr) {
 			ret = -ENOMEM;
-
+			return ret;
 		} else {
 			ret = tap_esc->init();
 
@@ -948,6 +937,8 @@ int tap_esc_start(void)
 				PX4_ERR("failed to initialize tap_esc (%i), channels:%d", ret, _supported_channel_count);
 				delete tap_esc;
 				tap_esc = nullptr;
+
+				return ret;
 			}
 		}
 	}
@@ -968,13 +959,13 @@ int tap_esc_stop(void)
 	return ret;
 }
 
-int initialise_uart()
+int initialise_uart(bool flow_enabled)
 {
 	// open uart
-	_uart_fd = open(_device, O_RDWR | O_NOCTTY | O_NONBLOCK);
+	esc_uart_fd = open(_device, O_RDWR | O_NOCTTY | O_NONBLOCK);
 	int termios_state = -1;
 
-	if (_uart_fd < 0) {
+	if (esc_uart_fd < 0) {
 		PX4_ERR("failed to open uart device!");
 		return -1;
 	}
@@ -982,7 +973,7 @@ int initialise_uart()
 	// set baud rate
 	int speed = B250000;
 	struct termios uart_config;
-	tcgetattr(_uart_fd, &uart_config);
+	tcgetattr(esc_uart_fd, &uart_config);
 
 	// clear ONLCR flag (which appends a CR for every LF)
 	uart_config.c_oflag &= ~ONLCR;
@@ -990,57 +981,39 @@ int initialise_uart()
 	// set baud rate
 	if (cfsetispeed(&uart_config, speed) < 0 || cfsetospeed(&uart_config, speed) < 0) {
 		PX4_ERR("failed to set baudrate for %s: %d\n", _device, termios_state);
-		close(_uart_fd);
+		close(esc_uart_fd);
 		return -1;
 	}
 
-	if ((termios_state = tcsetattr(_uart_fd, TCSANOW, &uart_config)) < 0) {
+	if ((termios_state = tcsetattr(esc_uart_fd, TCSANOW, &uart_config)) < 0) {
 		PX4_ERR("tcsetattr failed for %s\n", _device);
-		close(_uart_fd);
+		close(esc_uart_fd);
 		return -1;
 	}
 
-	// setup output flow control
-	if (enable_flow_control(false)) {
-		PX4_WARN("hardware flow disable failed");
-	}
-
-	return _uart_fd;
-}
-
-int enable_flow_control(bool enabled)
-{
-	struct termios uart_config;
-
-	int ret = tcgetattr(_uart_fd, &uart_config);
-
-	if (enabled) {
+	if (flow_enabled) {
 		uart_config.c_cflag |= CRTSCTS;
 
 	} else {
 		uart_config.c_cflag &= ~CRTSCTS;
 	}
 
-	ret = tcsetattr(_uart_fd, TCSANOW, &uart_config);
-
-	if (!ret) {
-		_flow_control_enabled = enabled;
+	if((termios_state = tcsetattr(esc_uart_fd, TCSANOW, &uart_config)) < 0) {
+		_flow_control_enabled = flow_enabled;
+		PX4_WARN("hardware flow disable failed");
+		close(esc_uart_fd);
+		return -1;
 	}
 
-	return ret;
-}
-
-int deinitialize_uart()
-{
-	return close(_uart_fd);
+	close(esc_uart_fd);
+	return esc_uart_fd;
 }
 
 void task_main(int argc, char *argv[])
 {
-
 	_is_running = true;
 
-	if (initialise_uart() < 0) {
+	if (initialise_uart(false) < 0) {
 		PX4_ERR("Failed to initialize UART.");
 
 		while (_task_should_exit == false) {
@@ -1057,14 +1030,10 @@ void task_main(int argc, char *argv[])
 		return;
 	}
 
-
 	// Main loop
 	while (!_task_should_exit) {
-
 		tap_esc->cycle();
-
 	}
-
 
 	_is_running = false;
 }
@@ -1105,7 +1074,6 @@ void stop()
 	}
 
 	tap_esc_stop();
-	deinitialize_uart();
 	_task_handle = -1;
 }
 
@@ -1132,6 +1100,9 @@ int tap_esc_main(int argc, char *argv[])
 
 	if (argc >= 2) {
 		verb = argv[1];
+	} else {
+		tap_esc_drv::usage();
+		errx(1, "invalid parameters");
 	}
 
 	while ((ch = px4_getopt(argc, argv, "d:n:", &myoptind, &myoptarg)) != EOF) {
@@ -1147,7 +1118,7 @@ int tap_esc_main(int argc, char *argv[])
 		}
 	}
 
-	if (!tap_esc && tap_esc_drv::_task_handle != -1) {
+	if (!tap_esc_drv::tap_esc && tap_esc_drv::_task_handle != -1) {
 		tap_esc_drv::_task_handle = -1;
 	}
 
@@ -1169,7 +1140,8 @@ int tap_esc_main(int argc, char *argv[])
 
 	else if (!strcmp(verb, "stop")) {
 		if (!tap_esc_drv::_is_running) {
-			PX4_WARN("tap_esc is not running");
+			PX4_WARN("tap_esc is not running"
+					);
 			return 1;
 		}
 
@@ -1180,7 +1152,9 @@ int tap_esc_main(int argc, char *argv[])
 		PX4_WARN("tap_esc is %s", tap_esc_drv::_is_running ? "running" : "not running");
 		return 0;
 
-	} else {
+	}
+
+	else {
 		tap_esc_drv::usage();
 		return 1;
 	}

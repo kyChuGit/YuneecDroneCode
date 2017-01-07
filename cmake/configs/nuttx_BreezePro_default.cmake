@@ -51,6 +51,7 @@ set(config_module_list
 ## BMA DEPENCANCY	drivers/bma180
 ## BMA DEPENCANCY   	drivers/bmi160
 	drivers/tap_esc
+	drivers/tap_esc/esc_tone
 
 	#
 	# System commands
@@ -157,6 +158,7 @@ set(config_module_list
 	# Tutorial code from
 	# https://px4.io/dev/px4_simple_app
 	examples/px4_simple_app
+	examples/myTest
 
 	# Tutorial code from
 	# https://px4.io/dev/daemon
