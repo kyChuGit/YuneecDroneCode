@@ -166,6 +166,7 @@ stm32_boardinitialize(void)
 	/* Radio Off (active low, init is set) */
 
 	stm32_configgpio(GPIO_PCON_RADIO);
+	stm32_configgpio(GPIO_VDD_3V3V_SD_CARD_EN);
 
 	/* Configure the GPIO pins to outputs and keep them low */
 	stm32_configgpio(GPIO_GPIO0_OUTPUT);

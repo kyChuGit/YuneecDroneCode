@@ -302,6 +302,8 @@ __BEGIN_DECLS
 #define GPIO_TEMP_CONT (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_CLEAR|GPIO_PORTF|GPIO_PIN13)
 #define TEMP_CONTROL(_on_true)  px4_arch_gpiowrite(GPIO_TEMP_CONT, (_on_true))
 
+#define GPIO_VDD_3V3V_SD_CARD_EN /* PG7  */ (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_2MHz|GPIO_OUTPUT_SET|GPIO_PORTG|GPIO_PIN7)
+
 /****************************************************************************************************
  * Public Types
  ****************************************************************************************************/
